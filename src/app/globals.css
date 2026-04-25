@@ -78,17 +78,101 @@ select {
 
 .home-page__card,
 .loading-shell {
-  width: min(680px, 100%);
-  padding: 32px;
+  width: min(760px, 100%);
+  padding: 38px;
   border-radius: 28px;
   background: var(--panel);
   border: 1px solid var(--border);
   box-shadow: 0 30px 120px rgba(0, 0, 0, 0.45);
 }
 
+.home-page__card {
+  display: grid;
+  justify-items: start;
+  overflow: hidden;
+}
+
+.home-motion-demo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: 156px;
+  height: 156px;
+  margin: 0 0 30px;
+  border: 1px solid rgba(215, 255, 90, 0.18);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(215, 255, 90, 0.18), transparent 54%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 70px rgba(189, 235, 55, 0.14);
+}
+
+.home-motion-demo::before {
+  position: absolute;
+  inset: 16px;
+  content: "";
+  border-radius: 25px;
+  background: rgba(6, 8, 10, 0.54);
+  box-shadow: inset 0 0 26px rgba(215, 255, 90, 0.1);
+}
+
+.home-motion-demo__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 7px;
+  width: 104px;
+  height: 104px;
+}
+
+.home-motion-demo__dot {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 96%, #ffffff 4%);
+  opacity: 0.24;
+  transform: scale(0.6) translateY(0);
+  animation: homeFisheyeRipple 1.35s ease-in-out infinite;
+  animation-delay: var(--home-wave-delay);
+  box-shadow: 0 0 0 rgba(215, 255, 90, 0);
+  will-change: transform, opacity;
+}
+
+@keyframes homeFisheyeRipple {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.58) translateY(0);
+    box-shadow: 0 0 0 rgba(215, 255, 90, 0);
+  }
+
+  46%,
+  56% {
+    opacity: 1;
+    transform: scale(1) translateY(-1px);
+    box-shadow:
+      0 0 10px rgba(215, 255, 90, 0.68),
+      0 0 24px rgba(215, 255, 90, 0.22);
+  }
+}
+
 .home-page h1 {
   margin: 0 0 12px;
-  font-size: clamp(1.8rem, 1.4rem + 1vw, 2.5rem);
+  font-size: clamp(2rem, 1.58rem + 1.35vw, 3.1rem);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+}
+
+.home-page__card > p:not(.panel__eyebrow) {
+  max-width: 620px;
+  margin: 0 0 26px;
+  font-size: clamp(1rem, 0.92rem + 0.25vw, 1.18rem);
+  line-height: 1.7;
 }
 
 .home-page p,
