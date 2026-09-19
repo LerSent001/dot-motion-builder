@@ -1,6 +1,7 @@
 import { AnimationConfig, MotionPreset } from "@/types/dot-motion";
 
 export const motionPresets: MotionPreset[] = [
+  ...["radar", "orbit", "heartbeat", "equalizer", "dna", "sparkle", "breathing", "sine", "collapse"].map(id => ({id: id as AnimationConfig["presetId"], name: id, description: id, supportsOrigin: id === "collapse"})),
   {
     id: "blink",
     name: "Blink",
@@ -220,7 +221,7 @@ export function getDefaultMotionConfig(presetId: AnimationConfig["presetId"]): P
       };
     default:
       return {
-        presetId: "pulse",
+        presetId,
         mode: "pulse",
         direction: "right",
         style: "pulse-size",

@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const browser=await chromium.launch({headless:true,channel:'chrome'});
+const page=await browser.newPage();
+const errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+await page.goto('file:///tmp/dot-export-edge.html');
+await page.waitForTimeout(100);
+assert.equal(await page.evaluate(()=>window.injected),undefined);
+const result=await page.evaluate(()=>{
+  const a=document.querySelector('body > :first-child');a.pause();a.seek(.2);
+  const b=document.createElement(a.localName);b.setAttribute('paused','');document.body.append(b);b.seek(.6);
+  const canvas=a.shadowRoot.querySelector('canvas');
+  const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+  return {transparent:pixels[3]===0,painted:Array.from(pixels).some((v,i)=>i%4===3&&v>0),independent:a.currentTime!==b.currentTime};
+});
+assert.deepEqual(result,{transparent:true,painted:true,independent:true});
+await page.evaluate(()=>{const a=document.querySelector('body > :first-child');a.seek(0);a.setAttribute('speed','2');a.play();});
+await page.waitForTimeout(200);
+const time=await page.evaluate(()=>document.querySelector('body > :first-child').currentTime);
+assert(time>.25&&time<.9,'speed multiplier');
+await page.evaluate(()=>{const a=document.querySelector('body > :first-child');a.pause();a.setAttribute('speed','bad');a.seek(.3);a.style.width='120px';});
+await page.waitForTimeout(50);
+assert.equal(await page.evaluate(()=>document.querySelector('body > :first-child').shadowRoot.querySelector('canvas').width),120);
+await page.goto('file:///tmp/dot-export-sequence.html');
+const sequence=await page.evaluate(()=>{
+  const e=document.querySelector('body > :first-child');e.pause();e.seek(0);
+  const first=e.shadowRoot.querySelector('canvas').toDataURL();e.seek(.1);
+  return first!==e.shadowRoot.querySelector('canvas').toDataURL();
+});
+assert(sequence,'sequence changes artwork');
+await page.goto('file:///tmp/dot-export-empty.html');
+await page.evaluate(()=>{const e=document.querySelector('body > :first-child');e.seek(100);});
+assert.equal(await page.evaluate(()=>document.querySelector('body > :first-child').running()),false);
+assert.deepEqual(errors,[]);
+await browser.close();
+console.log('PASS: offline, escaped text, transparency, multiple instances, speed, resize, sequence and non-loop.');

@@ -25,7 +25,7 @@ export default function HomePage() {
         <p className="panel__eyebrow">Dot Motion Builder</p>
         <h1>欢迎使用点阵动画编辑器</h1>
         <p>
-          在这里，你可以自由绘制点阵、选择动效预设、编排序列帧，设计专属于自己的点阵动画样式，并导出为 Lottie、SVGA、SVG、HTML/CSS 或 PNG 序列。
+          在这里，你可以自由绘制点阵、选择动效预设、编排序列帧，设计专属于自己的点阵动画样式，并直接导出网页文件或 SwiftUI 组件。
         </p>
         <Link href="/editor" className="button">
           开始创作

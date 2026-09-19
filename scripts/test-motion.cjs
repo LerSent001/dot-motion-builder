@@ -1,0 +1,53 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const Module = require('node:module');
+const assert = require('node:assert/strict');
+const ts = require('typescript');
+const root = path.resolve(__dirname, '..');
+const resolve = Module._resolveFilename;
+Module._resolveFilename = function(name, ...args) {return resolve.call(this, name.startsWith('@/') ? path.join(root, 'src', name.slice(2)) : name, ...args);};
+require.extensions['.ts'] = (mod, filename) => mod._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020}}).outputText, filename);
+const {createMockProject} = require('../src/lib/mock-project.ts');
+const {motionPresets, getDefaultMotionConfig} = require('../src/lib/motion-presets.ts');
+const {sampleMotion, getCycleDuration} = require('../src/lib/core/motion-sampler.ts');
+const {compileTimeline} = require('../src/lib/core/timeline.ts');
+const {generateExportArtifact} = require('../src/lib/exporters/index.ts');
+const {buildMotionData} = require('../src/lib/exporters/motion-data.ts');
+let checks = 0;
+for (const preset of motionPresets) for (const size of [2, 5, 8]) {
+  const loader = structuredClone(createMockProject().loaders[0]);
+  loader.pattern.grid.rows = loader.pattern.grid.cols = size;
+  loader.pattern.activeCells = [0, size * size - 1];
+  loader.animation = {...loader.animation, ...getDefaultMotionConfig(preset.id), originX: (size + 1) / 2, originY: (size + 1) / 2, speed: 1};
+  for (let cell = 0; cell < size * size; cell++) {
+    assert.deepEqual(sampleMotion(loader, cell, 0), sampleMotion(loader, cell, 1), 'loop endpoints');
+    for (const phase of [.001, .1, .3, .5, .9, .999]) {
+      const value = sampleMotion(loader, cell, phase);
+      assert(Number.isFinite(value.opacity) && value.opacity >= 0 && value.opacity <= 1);
+      assert(Number.isFinite(value.scale) && value.scale >= 0 && value.scale <= 1.31);
+      checks++;
+    }
+  }
+  const timeline = compileTimeline(loader);
+  assert.equal(timeline.tracks.length, 2, 'preserve the user mask');
+  for (const track of timeline.tracks) {
+    const frame = track.keyframes[30];
+    assert.deepEqual({opacity:frame.opacity, scale:frame.scale}, sampleMotion(loader,track.cellIndex,frame.timeMs/timeline.durationMs));
+  }
+  const project = createMockProject();
+  project.loaders = [loader];
+  const data = buildMotionData(project, loader);
+  assert.equal(data.scenes[0].cells.filter(c => c.active).length, 2);
+  const frame = data.scenes[0].cells[0].samples[30];
+  const expected = sampleMotion(loader, 0, 30 / (data.scenes[0].cells[0].samples.length - 1));
+  assert(Math.abs(frame[0] - expected.opacity) < 0.00001);
+  for (const format of ['web', 'swift']) {
+    const result = generateExportArtifact(format, project, loader);
+    assert(!result.content.includes('undefined') && !result.content.includes('NaN'));
+    assert(result.filename.endsWith(format === 'web' ? '.js' : '.swift'));
+  }
+  const duration = getCycleDuration(loader);
+  loader.animation.speed = 2;
+  assert.equal(getCycleDuration(loader), duration / 2);
+}
+console.log(`PASS: ${motionPresets.length} presets, 2/5/8 grids, ${checks} samples; mask, loop, exports and speed.`);

@@ -122,9 +122,9 @@ export function DotGridEditor({
                   : rgbaWithOpacity(loader.style.backgroundColor ?? "#2D3743", 1, loader.style.backgroundAlpha ?? 1),
                 ["--cell-color" as string]: rgbaWithOpacity(loader.style.primaryColor, 1, loader.style.primaryAlpha ?? 1),
                 ["--cell-glow-color" as string]: rgbaWithOpacity(
-                  loader.style.glowColor ?? loader.style.primaryColor,
+                  loader.style.primaryColor,
                   1,
-                  loader.style.glowAlpha ?? loader.style.primaryAlpha ?? 1
+                  loader.style.primaryAlpha ?? 1
                 ),
                 ["--cell-glow-size" as string]: `${loader.style.shadow ? loader.style.glow : 0}px`
               }}

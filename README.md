@@ -1,293 +1,264 @@
 # Dot Motion Builder
 
-一个面向点阵动效设计的可视化编辑器。
+Dot Motion Builder is a local-first visual editor for designing dot-matrix loading animations and exporting production-ready Web and SwiftUI code.
 
-它的目标很直接：把原本依赖代码和大量参数调试的点阵动画，变成一个可以直接在画布上编辑、预览、组合和导出的网页产品。
+**Live editor:** [dot-motion-builder.vercel.app](https://dot-motion-builder.vercel.app/editor)
 
-## 产品定位
+It replaces hand-written timing logic and repeated parameter tuning with a direct-manipulation canvas: draw the active cells, choose a motion pattern, tune the appearance, preview the result, and copy or download code for the target platform.
 
-Dot Motion Builder 是一个纯前端、无账号、无 API 依赖的点阵动效编辑工具，适合用于：
+The editor runs entirely in the browser. It has no account system, backend API, database, or cloud dependency, and project data stays in the browser's `localStorage`.
 
-- Loading / Spinner 设计
-- 点阵图标动效
-- 状态提示动效
-- 序列帧点阵动画
-- 导出给设计或前端继续接入的动效资产
+## Highlights
 
-当前项目的数据保存方式为浏览器本地存储（`localStorage`），不会上传到服务器。
+- Pan-and-zoom canvas with multiple independent artboards.
+- Custom loaders and frame-based sequence animations.
+- Direct cell drawing, plus Fill Grid and Clear Grid actions.
+- Square grids from 3×3 through 13×13.
+- Six exposed cell shapes: Rounded, Square, Circle, Diamond, Hexagon, and Star.
+- 22 motion presets with direction- and origin-aware controls where applicable.
+- Separate active-cell and inactive-cell animation styles.
+- Active and inactive colors with opacity controls.
+- Optional glow whose color follows the active color.
+- Chinese and English editor UI.
+- Self-contained Web and SwiftUI exports only—no SVG, Lottie, PNG sequence, SVGA, or project-code clutter.
+- Toolcraft-based inspector controls, sheets, selectors, switches, sliders, segmented controls, and color inputs.
 
-## 核心功能
+## Motion presets
 
-### 1. 无限画布
+The current preset library includes:
 
-- 支持在同一画布中创建多个画板
-- 支持缩放、拖拽、重置视图
-- 支持选中、复制、删除画板
+- Blink
+- Wave
+- Sweep
+- Bloom
+- Fisheye Ripple
+- Ripple
+- Pulse
+- Spiral
+- Corners First
+- Snake
+- Checkerboard
+- Rain
+- Pinwheel
+- Radar
+- Orbit
+- Heartbeat
+- Equalizer
+- DNA Helix
+- Sparkle
+- Breathing
+- Sine Wave
+- Collapse
 
-### 2. 动画预设
+Presets use a shared deterministic sampler, so the editor preview, Web export, and SwiftUI export consume the same motion data instead of maintaining separate platform-specific preset implementations.
 
-内置一组适用于点阵动画的 Motion Preset，当前包含：
+## Editor controls
 
-- 闪烁
-- 波浪
-- 扫描
-- 扩散
-- 鱼眼波纹
-- 涟漪
-- 脉冲
-- 螺旋
-- 四角优先
-- 蛇形
-- 棋盘
-- 雨滴
-- 风车
+The inspector is organized into five focused sections:
 
-每个预设都可以继续调整关键属性，例如：
+### Grid
 
-- 方向
-- 原点
-- FPS 速度
-- 点阵数量
-- 点阵间距
-- 主色
-- 发光颜色与范围
-- 背景点阵颜色
-- 圆角
-- 形状
+- Grid size: 3×3 to 13×13
+- Cell shape
+- Cell gap: 0 to 20 px
 
-### 3. 序列功能
+### Pattern
 
-除单画板动效外，还支持 Sequence 模式：
+- Motion/pattern preset
+- Fill Grid
+- Clear Grid
 
-- 支持连续添加序列帧
-- 新增序列帧会复制上一帧内容，便于逐帧微调
-- 支持从左到右顺序播放并循环
-- 预览时收拢为单个播放区域，停止时恢复为可编辑状态
-- FPS 会影响序列播放速度
+The grid does not have to be filled. Any subset of cells can be active, including an empty grid.
 
-适合用来制作：
+### Animation
 
-- 状态切换
-- 帧动画图标
-- Loading 进度变化
-- 多步骤视觉演示
+- Playback speed
+- Active Cells: Opacity Only, Pulse Size, Shrink Active, or Pop In/Out
+- Inactive Cells: None (Static), Static Dim, Breathe, or Ghost Grid
+- Direction controls for directional presets
+- Origin X/Y controls for origin-based presets
+- Sequence FPS
 
-### 4. 外观系统
+### Colors
 
-支持统一调整画板和点阵视觉表现：
+- Active color and opacity
+- Inactive color and opacity
 
-- 主色
-- 发光开关
-- 发光颜色
-- 发光范围
-- 背景点阵颜色
-- 点阵容器圆角
-- 点阵数量（2x2 到 8x8）
-- 点阵间距（0 到 20）
-- 点阵形状
+### Effects
 
-### 5. 导出能力
+- Glow on/off
+- Glow range
 
-当前支持导出：
+## Sequence animation
 
-- Project JSON
-- SVG
-- HTML + CSS
-- React
-- Lottie JSON
-- SVGA（Beta）
-- PNG Sequence（ZIP 打包）
+Sequence mode is intended for frame-based icons, state transitions, progress changes, and custom loading cycles.
 
-说明：
+- New sequences default to 6 FPS.
+- New frames copy the previous frame as an editing starting point.
+- Frames remain editable side by side and collapse into one animated preview during playback.
+- Active cells switch discretely by frame.
+- Inactive-cell effects continue animating between sequence frames.
+- Changing FPS updates the entire sequence.
 
-- PNG Sequence 会将所有帧统一打包为一个 zip 文件
-- 导出时会尽量保持与编辑器预览一致，包括背景、间距、点阵形状和颜色
+## Export targets
 
-### 6. 多语言
+Only two production targets are exposed: Web and SwiftUI.
 
-支持中英文切换：
+Both exporters preserve the grid, active-cell mask, sequence order, shape, gap, color, opacity, glow, playback speed, and sampled motion. The generated output has a transparent outer background and does not include any editor UI.
 
-- 中文（默认）
-- English
+### Web
 
-## 本地开发
+The Web export is a single, dependency-free JavaScript file that registers a reusable Web Component. It performs no network requests and does not include a demo document or editor markup.
 
-### 环境要求
+Load the generated file and add the component to the page:
 
-- Node.js 20+
-- npm 10+
-
-### 启动方式
-
-```bash
-npm install
-npm run dev
+```html
+<script src="./loader-1.js" defer></script>
+<dot-motion-loader style="width: 48px" speed="1"></dot-motion-loader>
 ```
 
-本地开发地址：
+The component defaults to 48 px wide. Resize it with CSS; height follows the exported aspect ratio automatically.
+
+```css
+dot-motion-loader {
+  width: 24px;
+}
+```
+
+Runtime controls:
+
+```js
+const loader = document.querySelector("dot-motion-loader");
+
+loader.pause();
+loader.play();
+loader.seek(0.5);
+loader.setAttribute("speed", "1.5");
+```
+
+Add the `paused` attribute to start in a paused state. Multiple instances keep independent playback state. When loading more than one different exported animation on the same page, give each script a unique `data-dot-motion-tag` value and use that custom-element name in the markup.
+
+### SwiftUI
+
+The SwiftUI export is a standalone `DotMotionView.swift` file with no third-party dependency. It supports iOS 15+ and macOS 12+.
+
+The recommended default presentation size is 48×48 pt:
+
+```swift
+DotMotionView(isPlaying: true, speed: 1)
+    .frame(width: 48, height: 48)
+```
+
+Use any other frame size when the surrounding interface requires it:
+
+```swift
+DotMotionView(isPlaying: isLoading, speed: 1.25)
+    .frame(width: 24, height: 24)
+```
+
+If an app imports multiple independently exported files, rename each generated `DotMotionView` type to avoid a symbol collision.
+
+## Typical sizes
+
+The default 48 px / 48 pt size works well for centered page-level loading states. Common alternatives are:
+
+- 20–24: buttons and compact inline feedback
+- 32–40: forms, cards, and local loading states
+- 48–64: page or panel loading states
+- 80–120: large status displays
+
+All geometry scales proportionally.
+
+## Cross-platform validation
+
+The current exporters have been validated in Chromium and in a native SwiftUI test app on an iPhone 17 Pro / iOS 26.4 Simulator.
+
+- Web output renders offline, resizes correctly, and supports pause, play, seek, speed changes, multiple instances, sequences, and non-looping playback.
+- SwiftUI output compiles as an arm64 Simulator app and renders in paused and animated states.
+- A 6 FPS sequence changes frames at the expected interval while its inactive-cell animation remains continuous.
+- Foreground geometry overlap between the two renderers measured 99.26% for a continuous animation and 98.56% for a sequence fixture.
+
+Web Canvas and SwiftUI Canvas do not produce mathematically identical edge pixels. Their blur kernels, color compositing, and polygon antialiasing create small differences around glow and diagonal edges, but no supported setting or animation effect is omitted.
+
+See [PLATFORM-RENDER-QA.md](./PLATFORM-RENDER-QA.md) for the test matrix and measured results.
+
+## Local-first data model
+
+- Projects are saved to browser `localStorage`.
+- Nothing is uploaded by the application.
+- Clearing site data removes locally saved projects.
+- Cloud sync, accounts, collaboration, and version history are not currently included.
+
+## Development
+
+Requirements:
+
+- Node.js 20+
+- pnpm 11+
+
+Install and start the development server:
 
 ```bash
+pnpm install
+pnpm dev
+```
+
+Open:
+
+```text
 http://127.0.0.1:3000/editor
 ```
 
-生产启动：
+Create a production build:
 
 ```bash
-npm run build
-npm run start -- --hostname 127.0.0.1 --port 3000
+pnpm build
+pnpm start --hostname 127.0.0.1 --port 3000
 ```
 
-## 项目结构
+## Verification
+
+Run the type, motion, and exporter checks:
+
+```bash
+pnpm test
+```
+
+Individual checks:
+
+```bash
+pnpm typecheck
+pnpm test:motion
+pnpm test:exports
+```
+
+Browser-level checks live in `scripts/` and use Playwright. `scripts/platform-web-qa.mjs` validates real rendered pixels, clipping, continuous motion, and the 6 FPS sequence timeline.
+
+## Project structure
 
 ```text
 src/
-  app/
-    editor/              # 编辑器页面
-  components/editor/     # 编辑器 UI、画布、预览、导出、颜色选择器
-  lib/
-    exporters/           # 各类导出逻辑
-    motion-presets.ts    # 动效预设
-    persistence.ts       # 本地存储
-    cell-shapes.ts       # 点阵形状
-    canvas-grid-metrics.ts
-  stores/
-    use-editor-store.ts  # 编辑器状态管理
-  types/
-    dot-motion.ts        # 核心类型定义
+  app/                         Next.js routes and global styling
+  components/editor/           Canvas, inspector, preview, and export UI
+  lib/core/                    Shared motion sampling and timelines
+  lib/exporters/               Web and SwiftUI generators
+  stores/                      Zustand editor state and persistence
+  toolcraft/                   Toolcraft UI source used by the editor
+  types/                       Core project and animation types
+scripts/                       Motion, export, browser, and platform QA
 ```
 
-## 使用说明
+## Deployment
 
-### 新建画板
+The application has no required server-side service, database, account system, or environment variable. Vercel can deploy it directly from this repository with the standard Next.js settings.
 
-点击顶部 `+ 新建`，可以创建：
-
-- 自定义画板
-- 序列画板
-
-### 编辑点阵
-
-- 直接在画板中点选格子
-- 选中后在右侧面板调整外观和动效
-
-### 使用动画预设
-
-1. 选中某个自定义画板
-2. 在右侧 `动效预设 / Motion Preset` 中选择一个预设
-3. 根据需要继续调整方向、原点、FPS、背景点阵等参数
-4. 点击 `预览动画`
-
-### 使用序列
-
-1. 新建一个序列画板
-2. 使用顶部的 `+ 序列 / - 序列` 管理帧数
-3. 逐帧修改每个点阵状态
-4. 点击预览查看循环播放效果
-
-## 数据保存说明
-
-- 当前为纯本地保存
-- 数据保存在浏览器 `localStorage`
-- 清除浏览器缓存后，本地项目数据会丢失
-
-如果后续需要：
-
-- 云端保存
-- 多端同步
-- 团队协作
-- 版本历史
-
-可以在下一阶段接入后端服务。
-
-## 如何发布给其他人访问
-
-因为这个项目没有 API、没有数据库、没有登录系统，所以**不需要购买传统服务器**也能发布。
-
-最推荐的方案：
-
-### 方案 A：GitHub + Vercel
-
-适合正式给任何人访问。
-
-优点：
-
-- 免费起步
-- 对 Next.js 支持最好
-- 自动生成公网链接
-- 后续可以绑定自定义域名
-
-最短流程：
-
-1. 把项目上传到 GitHub
-2. 登录 Vercel
-3. Import 这个 GitHub 仓库
-4. 直接 Deploy
-5. 获得一个公网链接
-
-### 方案 B：本地内网穿透
-
-适合临时给别人试用，不适合正式发布。
-
-例如使用：
-
-- ngrok
-- cpolar
-- Cloudflare Tunnel
-
-缺点：
-
-- 你的电脑必须一直开着
-- 稳定性一般
-- 链接可能变化
-
-## 推荐发布路径
-
-如果你的目标是“把链接发给任何人打开就能用”，建议直接用：
-
-**GitHub + Vercel**
-
-更完整的发布步骤可以看：
-
-- [DEPLOY.md](/Users/caicai/Documents/Codex/openclaw/dot-motion-builder/DEPLOY.md)
-
-这是当前这个项目最轻量、最省心、最适合长期使用的方案。
-
-## 上传到 GitHub
-
-如果你已经创建好了一个空仓库，比如：
+For a conventional production build:
 
 ```bash
-https://github.com/<your-name>/dot-motion-builder
+pnpm install --frozen-lockfile
+pnpm build
 ```
 
-那本地只需要执行：
+## Credits and third-party license
 
-```bash
-git init
-git branch -M main
-git add .
-git commit -m "feat: initial dot motion builder release"
-git remote add origin https://github.com/<your-name>/dot-motion-builder.git
-git push -u origin main
-```
-
-## 后续可扩展方向
-
-- 云端项目保存
-- 模板库同步
-- 分享链接
-- 导出参数精细化
-- 团队协作与版本管理
-- 更完整的序列编辑器
-
-## 当前状态
-
-当前版本已经具备可对外演示和使用的产品形态，重点能力包括：
-
-- 动画预设
-- 序列编辑
-- 外观调节
-- 多格式导出
-- 纯前端本地存储
-
-适合直接进入公开试用和早期收集反馈阶段。
+The editor includes Toolcraft UI source used by the Orb project for its inspector and control system. The included Toolcraft code retains Pixel Point's MIT notice; see [TOOLCRAFT_LICENSE.md](./TOOLCRAFT_LICENSE.md).

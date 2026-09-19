@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
-import { ColorControl } from "@/components/editor/color-control";
 import { DotGridEditor } from "@/components/editor/dot-grid-editor";
 import { ExportPanel } from "@/components/editor/export-panel";
 import { PreviewStage, SequencePreviewStage } from "@/components/editor/preview-stage";
@@ -10,6 +9,15 @@ import { normalizeCellShape, shapeOptions } from "@/lib/cell-shapes";
 import { motionPresets } from "@/lib/motion-presets";
 import { inactiveStyleCopy, Language, motionPresetCopy, uiCopy } from "@/lib/ui-copy";
 import { useEditorStore } from "@/stores/use-editor-store";
+import { Button } from "@/toolcraft/ui/components/primitives/button";
+import { Panel } from "@/toolcraft/ui/components/panel/panel";
+import { PanelSection } from "@/toolcraft/ui/components/panel/panel-section";
+import { Sheet, SheetContent } from "@/toolcraft/ui/components/composites/sheet";
+import { SegmentedControl } from "@/toolcraft/ui/components/controls/segmented/segmented-control";
+import { SliderControl } from "@/toolcraft/ui/components/controls/slider/slider-control";
+import { SelectControl } from "@/toolcraft/ui/components/controls/select/select-control";
+import { SwitchControl } from "@/toolcraft/ui/components/controls/boolean/boolean-controls";
+import { ColorOpacityControl } from "@/toolcraft/ui/components/controls/color/color-control";
 import {
   CellShape,
   Direction,
@@ -43,11 +51,6 @@ const directionControlCells = [
   directionOptions[6],
   directionOptions[7]
 ];
-
-function getRangeStyle(value: number, min: number, max: number) {
-  const progress = max <= min ? 0 : ((value - min) / (max - min)) * 100;
-  return { ["--range-progress" as string]: `${Math.min(100, Math.max(0, progress))}%` };
-}
 
 type CanvasArtboardProps = {
   loader: LoaderComponent;
@@ -293,39 +296,45 @@ export function EditorApp() {
   const deleteSelectedLoader = useEditorStore((state) => state.deleteSelectedLoader);
   const moveLoader = useEditorStore((state) => state.moveLoader);
   const moveLoaders = useEditorStore((state) => state.moveLoaders);
-  const renameLoader = useEditorStore((state) => state.renameLoader);
   const setMotionPreset = useEditorStore((state) => state.setMotionPreset);
   const setMotionOrigin = useEditorStore((state) => state.setMotionOrigin);
   const setDirection = useEditorStore((state) => state.setDirection);
+  const setSpeed = useEditorStore(state => state.setSpeed);
+  const fillGrid = useEditorStore(state => state.fillGrid);
+  const setScaleIntensity = useEditorStore(state => state.setScaleIntensity);
+  const setAnimationStyle = useEditorStore(state => state.setAnimationStyle);
   const setFps = useEditorStore((state) => state.setFps);
   const setInactiveStyle = useEditorStore((state) => state.setInactiveStyle);
   const setPrimaryColor = useEditorStore((state) => state.setPrimaryColor);
   const setPrimaryAlpha = useEditorStore((state) => state.setPrimaryAlpha);
   const setGlowEnabled = useEditorStore((state) => state.setGlowEnabled);
-  const setGlowColor = useEditorStore((state) => state.setGlowColor);
-  const setGlowAlpha = useEditorStore((state) => state.setGlowAlpha);
   const setGlowSize = useEditorStore((state) => state.setGlowSize);
   const setBackgroundColor = useEditorStore((state) => state.setBackgroundColor);
   const setBackgroundAlpha = useEditorStore((state) => state.setBackgroundAlpha);
   const setCellShape = useEditorStore((state) => state.setCellShape);
-  const setShapeInnerRadius = useEditorStore((state) => state.setShapeInnerRadius);
   const setGridSize = useEditorStore((state) => state.setGridSize);
   const setGridGap = useEditorStore((state) => state.setGridGap);
-  const setRadius = useEditorStore((state) => state.setRadius);
   const setCanvasView = useEditorStore((state) => state.setCanvasView);
   const selectedLoader = project.loaders.find((loader) => loader.id === selectedLoaderId) ?? null;
   const editingLoader = selectedLoader ?? project.loaders[0];
   const hasSelection = Boolean(selectedLoader);
-  const maxRadius = editingLoader.pattern.grid.cellSize / 2;
   const selectedShape = normalizeCellShape(editingLoader.style.cellShape);
   const selectedSequenceId = selectedLoader?.sequenceId;
   const viewportRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [propertiesCollapsed, setPropertiesCollapsed] = useState(false);
   const [previewScope, setPreviewScope] = useState<"none" | "selected" | "all">("none");
   const [language, setLanguage] = useState<Language>("cn");
   const [showZoomHud, setShowZoomHud] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState({
+    grid: false,
+    pattern: false,
+    animation: false,
+    colors: true,
+    effects: true
+  });
   const zoomHudTimeoutRef = useRef<number | null>(null);
   const panStateRef = useRef<{
     pointerId: number;
@@ -663,15 +672,30 @@ export function EditorApp() {
   return (
     <main className="builder-shell">
       <div className="builder-topbar">
+        <a
+          className="github-entry"
+          href="https://github.com/LerSent001/dot-motion-builder"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Open Dot Motion Builder on GitHub"
+          title="GitHub"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49 0-.24-.01-.88-.02-1.73-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.63.07-.62.07-.62 1 .08 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.71a9.3 9.3 0 0 1 2.5.35c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.8-4.57 5.05.36.32.68.95.68 1.91 0 1.38-.01 2.49-.01 2.83 0 .27.18.6.69.49A10.27 10.27 0 0 0 22 12.23C22 6.58 17.52 2 12 2Z" />
+          </svg>
+          <span>GitHub</span>
+        </a>
         <div className="builder-topbar__center">
-          <button
+          <Button
             type="button"
-            className="toolbar-button toolbar-button--primary"
+            className="toolbar-button"
+            variant="default"
+            size="default"
             onClick={() => setIsAddMenuOpen((value) => !value)}
             aria-expanded={isAddMenuOpen}
           >
             {t.add}
-          </button>
+          </Button>
           {isAddMenuOpen ? (
             <div className="add-artboard-menu">
               <button type="button" className="add-artboard-card" onClick={() => createArtboard("custom")}>
@@ -690,27 +714,26 @@ export function EditorApp() {
           ) : null}
         </div>
         <div className="builder-topbar__actions">
-          <button type="button" className="toolbar-button" onClick={togglePreviewAll}>
+          <Button type="button" className="toolbar-button" variant="outline" size="default" onClick={togglePreviewAll}>
             {previewScope === "all" ? t.stopPreview : t.previewAll}
-          </button>
-          <button type="button" className="toolbar-button" onClick={openExport}>
+          </Button>
+          <Button type="button" className="toolbar-button" variant="default" size="default" onClick={openExport}>
             {t.export}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className={`zoom-hud${showZoomHud ? " is-visible" : ""}`}>{Math.round(canvas.zoom * 100)}%</div>
       <div className="language-switch" aria-label="Language switch">
-        {(["cn", "en"] as const).map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`language-switch__item${language === item ? " is-active" : ""}`}
-            onClick={() => setLanguage(item)}
-          >
-            {item.toUpperCase()}
-          </button>
-        ))}
+        <SegmentedControl
+          ariaLabel="Language switch"
+          name="Language"
+          value={language}
+          options={[{ value: "cn", label: "中文" }, { value: "en", label: "EN" }]}
+          onValueChange={(value) => {
+            if (value === "cn" || value === "en") setLanguage(value);
+          }}
+        />
       </div>
 
       <section className="builder-workspace">
@@ -832,307 +855,196 @@ export function EditorApp() {
 
         </div>
 
-        <aside className={`settings-sidebar${hasSelection ? " is-open" : " is-hidden"}`} data-artboard-interactive="true">
-          <div className="settings-sidebar__header">
-            <div>
-              <h2>{t.settings}</h2>
-            </div>
-          </div>
-
-          <div className="settings-sidebar__content">
-            {!hasSelection ? (
-              <div className="settings-empty">
-                <p>{t.empty}</p>
-              </div>
-            ) : null}
-
+        <aside className={`settings-sidebar${hasSelection ? " is-open" : " is-hidden"}${propertiesCollapsed ? " is-collapsed" : ""}`} data-artboard-interactive="true">
+          <Panel
+            title={t.settings}
+            className="settings-toolcraft-panel h-full max-h-none w-full rounded-lg"
+            collapsed={propertiesCollapsed}
+            collapseDirection="right"
+            collapseLabel={language === "cn" ? "收起参数面板" : "Collapse controls"}
+            expandLabel={language === "cn" ? "展开参数面板" : "Expand controls"}
+            onCollapsedChange={setPropertiesCollapsed}
+          >
             {hasSelection ? (
-            <>
-          <section className="inspector-group inspector-group--flat">
-            <div className="inspector-group__title">{t.appearance}</div>
-            <div className="inspector-group__body">
-              <label className="field">
-                <span>{t.loaderName}</span>
-                <input value={editingLoader.name} onChange={(event) => renameLoader(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>{t.shape}</span>
-                <select
-                  value={selectedShape}
-                  onChange={(event) => setCellShape(event.target.value as CellShape)}
-                >
-                  {shapeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {t[option.value]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="appearance-controls">
-                <ColorControl
-                  label={t.primaryColor}
-                  color={editingLoader.style.primaryColor}
-                  alpha={editingLoader.style.primaryAlpha ?? 1}
-                  onColorChange={setPrimaryColor}
-                  onAlphaChange={setPrimaryAlpha}
-                />
-                <div className="appearance-card appearance-card--glow">
-                  <div className="appearance-card__row">
-                    <span className="appearance-card__label">{t.glow}</span>
-                    <button
-                      type="button"
-                      className={`switch-toggle${editingLoader.style.shadow ? " is-on" : ""}`}
-                      onClick={() => setGlowEnabled(!editingLoader.style.shadow)}
-                      aria-pressed={editingLoader.style.shadow}
-                      aria-label={editingLoader.style.shadow ? "Turn glow off" : "Turn glow on"}
-                    >
-                      <span aria-hidden="true" />
-                    </button>
-                  </div>
-                  <ColorControl
-                    label={t.glowColor}
-                    color={editingLoader.style.glowColor ?? editingLoader.style.primaryColor}
-                    alpha={editingLoader.style.glowAlpha ?? editingLoader.style.primaryAlpha ?? 1}
-                    onColorChange={setGlowColor}
-                    onAlphaChange={setGlowAlpha}
-                    disabled={!editingLoader.style.shadow}
-                  />
-                  <label className="glow-control">
-                    <div className="appearance-card__row">
-                      <span className="appearance-card__label">{t.spread}</span>
-                      <strong>{Math.round(editingLoader.style.glow)} px</strong>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="48"
-                      step="1"
-                      value={editingLoader.style.glow}
-                      style={getRangeStyle(editingLoader.style.glow, 0, 48)}
-                      onChange={(event) => setGlowSize(Number(event.target.value))}
-                      disabled={!editingLoader.style.shadow}
-                    />
-                  </label>
-                </div>
-                <ColorControl
-                  label={t.backgroundColor}
-                  color={editingLoader.style.backgroundColor ?? "#2D3743"}
-                  alpha={editingLoader.style.backgroundAlpha ?? 1}
-                  onColorChange={setBackgroundColor}
-                  onAlphaChange={setBackgroundAlpha}
-                />
-                {selectedShape === "rectangle" ? (
-                <label className="field slider-field">
-                  <div className="appearance-card__row">
-                    <span className="appearance-card__label">{t.cornerRadius}</span>
-                    <strong>{Math.round(Math.min(editingLoader.style.radius, maxRadius))} px</strong>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max={maxRadius}
-                    step="1"
-                    value={Math.min(editingLoader.style.radius, maxRadius)}
-                    style={getRangeStyle(Math.min(editingLoader.style.radius, maxRadius), 0, maxRadius)}
-                    onChange={(event) => setRadius(Number(event.target.value))}
-                  />
-                  <div className="range-labels range-labels--tight">
-                    <span>{t.sharp}</span>
-                    <span>{t.round}</span>
-                  </div>
-                </label>
-                ) : null}
-                {selectedShape === "star" ? (
-                <label className="field slider-field">
-                  <div className="appearance-card__row">
-                    <span className="appearance-card__label">{t.innerRadius}</span>
-                    <strong>{Math.round((editingLoader.style.innerRadius ?? 0.48) * 100)}%</strong>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.2"
-                    max="0.8"
-                    step="0.01"
-                    value={editingLoader.style.innerRadius ?? 0.48}
-                    style={getRangeStyle(editingLoader.style.innerRadius ?? 0.48, 0.2, 0.8)}
-                    onChange={(event) => setShapeInnerRadius(Number(event.target.value))}
-                  />
-                  <div className="range-labels range-labels--tight">
-                    <span>20%</span>
-                    <span>80%</span>
-                  </div>
-                </label>
-                ) : null}
-                <label className="field slider-field">
-                  <div className="appearance-card__row">
-                    <span className="appearance-card__label">{t.gridSize}</span>
-                    <strong>
-                      {editingLoader.pattern.grid.rows}x{editingLoader.pattern.grid.cols}
-                    </strong>
-                  </div>
-                  <input
-                    type="range"
-                    min="2"
-                    max="8"
-                    step="1"
-                    value={editingLoader.pattern.grid.rows}
-                    style={getRangeStyle(editingLoader.pattern.grid.rows, 2, 8)}
-                    onChange={(event) => changeGridSize(Number(event.target.value))}
-                  />
-                  <div className="range-labels range-labels--tight">
-                    <span>2x2</span>
-                    <span>8x8</span>
-                  </div>
-                </label>
-                <label className="field slider-field">
-                  <div className="appearance-card__row">
-                    <span className="appearance-card__label">{t.gap}</span>
-                    <strong>{Math.round(editingLoader.pattern.grid.gap)} px</strong>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="20"
-                    step="1"
-                    value={editingLoader.pattern.grid.gap}
-                    style={getRangeStyle(editingLoader.pattern.grid.gap, 0, 20)}
-                    onChange={(event) => changeGridGap(Number(event.target.value))}
-                  />
-                  <div className="range-labels range-labels--tight">
-                    <span>0</span>
-                    <span>20</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </section>
-
-          <section className="inspector-group inspector-group--flat">
-            <div className="inspector-group__title">{t.motion}</div>
-            <div className="inspector-group__body">
-              {!editingLoader.sequenceId ? (
               <>
-              <label className="field">
-                <span>{t.motionPreset}</span>
-                <select
-                  value={editingLoader.animation.presetId}
-                  onChange={(event) => setMotionPreset(event.target.value as typeof editingLoader.animation.presetId)}
+                <PanelSection
+                  title={t.grid}
+                  collapsible
+                  collapsed={collapsedSections.grid}
+                  collapseLabel={language === "cn" ? "收起网格" : "Collapse grid"}
+                  expandLabel={language === "cn" ? "展开网格" : "Expand grid"}
+                  onCollapsedChange={(value) => setCollapsedSections(current => ({ ...current, grid: value }))}
                 >
-                  {motionPresets.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {motionPresetCopy[language][preset.id].name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="field-help">{activeMotionCopy.description}</p>
-              {activeMotionPreset.supportsDirection ? (
-                <div className="field">
-                  <span>{t.direction}</span>
-                  <div className="direction-picker" role="radiogroup" aria-label="Animation direction">
-                    {directionControlCells.map((option, index) =>
-                      option ? (
-                        <button
-                          key={option.value}
-                          type="button"
-                          className={`direction-picker__item${editingLoader.animation.direction === option.value ? " is-active" : ""}`}
-                          onClick={() => setDirection(option.value)}
-                          role="radio"
-                          aria-checked={editingLoader.animation.direction === option.value}
-                          title={option.label}
-                        >
-                          <span aria-hidden="true" className="direction-picker__icon">
-                            {option.icon}
-                          </span>
-                        </button>
-                      ) : (
-                        <span key={`direction-center-${index}`} className="direction-picker__center" aria-hidden="true" />
-                      )
-                    )}
+                  <div className="toolcraft-control-stack">
+                    <SliderControl showFill variant="discrete" markerCount={11} name={t.gridSize} min={3} max={13} step={1} value={editingLoader.pattern.grid.rows} valueLabel={`${editingLoader.pattern.grid.rows}×${editingLoader.pattern.grid.cols}`} onValueChange={changeGridSize} />
+                    <SelectControl
+                      name={t.shape}
+                      value={selectedShape}
+                      options={shapeOptions.map(option => ({ value: option.value, label: t[option.value] }))}
+                      onValueChange={(value) => setCellShape(value as CellShape)}
+                    />
+                    <SliderControl showFill name={t.gap} min={0} max={20} step={1} unit="px" value={editingLoader.pattern.grid.gap} onValueChange={changeGridGap} />
                   </div>
-                </div>
-              ) : null}
-              {activeMotionPreset.supportsOrigin ? (
-                <>
-                  <label className="field">
-                    <span>{t.originX}: {editingLoader.animation.originX}</span>
-                    <input
-                      type="range"
-                      min="1"
-                      max={editingLoader.pattern.grid.cols}
-                      step="1"
-                      value={editingLoader.animation.originX}
-                      style={getRangeStyle(editingLoader.animation.originX, 1, editingLoader.pattern.grid.cols)}
-                      onChange={(event) => setMotionOrigin("x", Number(event.target.value))}
-                    />
-                  </label>
-                  <label className="field">
-                    <span>{t.originY}: {editingLoader.animation.originY}</span>
-                    <input
-                      type="range"
-                      min="1"
-                      max={editingLoader.pattern.grid.rows}
-                      step="1"
-                      value={editingLoader.animation.originY}
-                      style={getRangeStyle(editingLoader.animation.originY, 1, editingLoader.pattern.grid.rows)}
-                      onChange={(event) => setMotionOrigin("y", Number(event.target.value))}
-                    />
-                  </label>
-                </>
-              ) : null}
-              </>
-              ) : null}
-              <label className="field">
-                <span>{t.backgroundStyle}</span>
-                <select
-                  value={editingLoader.animation.inactiveStyle}
-                  onChange={(event) => setInactiveStyle(event.target.value as InactiveStyle)}
+                </PanelSection>
+
+                <PanelSection
+                  title={t.pattern}
+                  collapsible
+                  collapsed={collapsedSections.pattern}
+                  collapseLabel={language === "cn" ? "收起图案" : "Collapse pattern"}
+                  expandLabel={language === "cn" ? "展开图案" : "Expand pattern"}
+                  onCollapsedChange={(value) => setCollapsedSections(current => ({ ...current, pattern: value }))}
                 >
-                  {inactiveStyles.map((style) => (
-                    <option key={style.value} value={style.value}>
-                      {inactiveStyleCopy[language][style.value]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="field-help">{t.backgroundHelp}</p>
-              <label className="field slider-field">
-                <div className="appearance-card__row">
-                  <span className="appearance-card__label">{t.speed}</span>
-                  <strong>{editingLoader.animation.fps}</strong>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="30"
-                  step="1"
-                  value={editingLoader.animation.fps}
-                  style={getRangeStyle(editingLoader.animation.fps, 1, 30)}
-                  onChange={(event) => setFps(Number(event.target.value))}
-                />
-                <div className="range-labels range-labels--tight">
-                  <span>{t.slower}</span>
-                  <span>{t.faster}</span>
-                </div>
-              </label>
-            </div>
-          </section>
-            </>
+                  <div className="toolcraft-control-stack">
+                    {!editingLoader.sequenceId ? (
+                      <>
+                        <SelectControl
+                          name={t.pattern}
+                          value={editingLoader.animation.presetId}
+                          options={motionPresets.map(preset => ({ value: preset.id, label: motionPresetCopy[language][preset.id].name }))}
+                          onValueChange={(value) => setMotionPreset(value as typeof editingLoader.animation.presetId)}
+                        />
+                        <p className="field-help">{activeMotionCopy.description}</p>
+                      </>
+                    ) : null}
+                    <div className="motion-grid-actions">
+                      <Button type="button" variant="outline" onClick={() => fillGrid(true)}>{language === "cn" ? "填满点阵" : "Fill grid"}</Button>
+                      <Button type="button" variant="outline" onClick={() => fillGrid(false)}>{language === "cn" ? "清空点阵" : "Clear grid"}</Button>
+                    </div>
+                  </div>
+                </PanelSection>
+
+                <PanelSection
+                  title={t.animation}
+                  collapsible
+                  collapsed={collapsedSections.animation}
+                  collapseLabel={language === "cn" ? "收起动画" : "Collapse animation"}
+                  expandLabel={language === "cn" ? "展开动画" : "Expand animation"}
+                  onCollapsedChange={(value) => setCollapsedSections(current => ({ ...current, animation: value }))}
+                >
+                  <div className="toolcraft-control-stack">
+                    {!editingLoader.sequenceId ? (
+                      <>
+                        <SliderControl showFill name={t.playbackSpeed} min={0.25} max={3} step={0.05} unit="×" value={editingLoader.animation.speed ?? 1} onValueChange={setSpeed} />
+                        <SelectControl
+                          name={t.activeCells}
+                          value={editingLoader.animation.style}
+                          options={[
+                            { value: "opacity-only", label: language === "cn" ? "透明度" : "Opacity Only" },
+                            { value: "pulse-size", label: language === "cn" ? "脉冲缩放" : "Pulse Size" },
+                            { value: "depth-shift", label: language === "cn" ? "收缩激活点" : "Shrink Active" },
+                            { value: "bloom-pop", label: language === "cn" ? "弹性出现" : "Pop In/Out" }
+                          ]}
+                          onValueChange={(value) => setAnimationStyle(value as typeof editingLoader.animation.style)}
+                        />
+                        {editingLoader.animation.style === "opacity-only" ? null : (
+                          <SliderControl showFill name={language === "cn" ? "缩放强度" : "Scale Intensity"} min={0} max={100} step={5} unit="%" value={Math.round((editingLoader.animation.scaleIntensity ?? 1) * 100)} onValueChange={(value) => setScaleIntensity(value / 100)} />
+                        )}
+                      </>
+                    ) : (
+                      <SliderControl showFill variant="discrete" markerCount={6} name={t.speed} min={1} max={30} step={1} value={editingLoader.animation.fps} onValueChange={setFps} />
+                    )}
+                    <SelectControl
+                      name={t.inactiveCells}
+                      value={editingLoader.animation.inactiveStyle}
+                      options={inactiveStyles.map(style => ({ value: style.value, label: inactiveStyleCopy[language][style.value] }))}
+                      onValueChange={(value) => setInactiveStyle(value as InactiveStyle)}
+                    />
+                    {activeMotionPreset.supportsDirection ? (
+                      <div className="toolcraft-direction-control">
+                        <span className="toolcraft-field-label">{t.direction}</span>
+                        <div className="direction-picker" role="radiogroup" aria-label="Animation direction">
+                          {directionControlCells.map((option, index) =>
+                            option ? (
+                              <Button
+                                key={option.value}
+                                type="button"
+                                variant="outline"
+                                size="icon-sm"
+                                className={`direction-picker__item${editingLoader.animation.direction === option.value ? " is-active" : ""}`}
+                                onClick={() => setDirection(option.value)}
+                                role="radio"
+                                aria-checked={editingLoader.animation.direction === option.value}
+                                aria-pressed={editingLoader.animation.direction === option.value}
+                                title={option.label}
+                              >
+                                <span aria-hidden="true" className="direction-picker__icon">{option.icon}</span>
+                              </Button>
+                            ) : (
+                              <span key={`direction-center-${index}`} className="direction-picker__center" aria-hidden="true" />
+                            )
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+                    {activeMotionPreset.supportsOrigin ? (
+                      <>
+                        <SliderControl showFill variant="discrete" markerCount={editingLoader.pattern.grid.cols} name={t.originX} min={1} max={editingLoader.pattern.grid.cols} step={1} value={editingLoader.animation.originX} onValueChange={(value) => setMotionOrigin("x", value)} />
+                        <SliderControl showFill variant="discrete" markerCount={editingLoader.pattern.grid.rows} name={t.originY} min={1} max={editingLoader.pattern.grid.rows} step={1} value={editingLoader.animation.originY} onValueChange={(value) => setMotionOrigin("y", value)} />
+                      </>
+                    ) : null}
+                  </div>
+                </PanelSection>
+
+                <PanelSection
+                  title={t.colors}
+                  collapsible
+                  collapsed={collapsedSections.colors}
+                  collapseLabel={language === "cn" ? "收起颜色" : "Collapse colors"}
+                  expandLabel={language === "cn" ? "展开颜色" : "Expand colors"}
+                  onCollapsedChange={(value) => setCollapsedSections(current => ({ ...current, colors: value }))}
+                >
+                  <div className="toolcraft-control-stack">
+                    <ColorOpacityControl
+                      showLabel
+                      name={t.primaryColor}
+                      hex={editingLoader.style.primaryColor}
+                      opacity={(editingLoader.style.primaryAlpha ?? 1) * 100}
+                      onValueChange={({ hex, opacity }) => { setPrimaryColor(hex); setPrimaryAlpha(opacity / 100); }}
+                    />
+                    <ColorOpacityControl
+                      showLabel
+                      name={t.backgroundColor}
+                      hex={editingLoader.style.backgroundColor ?? "#2D3743"}
+                      opacity={(editingLoader.style.backgroundAlpha ?? 1) * 100}
+                      onValueChange={({ hex, opacity }) => { setBackgroundColor(hex); setBackgroundAlpha(opacity / 100); }}
+                    />
+                  </div>
+                </PanelSection>
+
+                <PanelSection
+                  title={t.effects}
+                  collapsible
+                  collapsed={collapsedSections.effects}
+                  collapseLabel={language === "cn" ? "收起效果" : "Collapse effects"}
+                  expandLabel={language === "cn" ? "展开效果" : "Expand effects"}
+                  onCollapsedChange={(value) => setCollapsedSections(current => ({ ...current, effects: value }))}
+                >
+                  <div className="toolcraft-control-stack">
+                    <SwitchControl checked={editingLoader.style.shadow} name={t.glow} onCheckedChange={setGlowEnabled} />
+                    {editingLoader.style.shadow ? (
+                      <SliderControl showFill name={t.spread} min={0} max={48} step={1} unit="px" value={editingLoader.style.glow} onValueChange={setGlowSize} />
+                    ) : null}
+                  </div>
+                </PanelSection>
+              </>
             ) : null}
-          </div>
           {hasSelection ? (
-            <div className="motion-preview-dock">
-              <button type="button" className="button motion-preview-button" onClick={togglePreviewSelected}>
+            <PanelSection actionGroup="primary">
+              <Button type="button" className="motion-preview-button" size="default" onClick={togglePreviewSelected}>
                 {previewScope === "selected" ? t.stopPreview : t.previewAnimation}
-              </button>
-            </div>
+              </Button>
+            </PanelSection>
           ) : null}
+          </Panel>
         </aside>
       </section>
 
-      <div className={`export-drawer${isExportOpen ? " is-open" : ""}`} id="export-center">
-        {isExportOpen ? <ExportPanel language={language} onClose={() => setIsExportOpen(false)} /> : null}
-      </div>
+      <Sheet open={isExportOpen} onOpenChange={setIsExportOpen}>
+        <SheetContent className="export-drawer" closeLabel={t.closeExport} id="export-center" side="bottom">
+          <ExportPanel language={language} />
+        </SheetContent>
+      </Sheet>
     </main>
   );
 }

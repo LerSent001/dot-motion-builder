@@ -54,21 +54,19 @@ type EditorState = {
   setDirection: (direction: Direction) => void;
   setFps: (value: number) => void;
   setScaleIntensity: (value: number) => void;
+  setSpeed: (value: number) => void;
+  fillGrid: (filled: boolean) => void;
   setAnimationStyle: (value: "opacity-only" | "pulse-size" | "depth-shift" | "bloom-pop") => void;
   setInactiveStyle: (value: "none" | "static-dim" | "breathe" | "ghost") => void;
   setPrimaryColor: (value: string) => void;
   setPrimaryAlpha: (value: number) => void;
   setGlowEnabled: (value: boolean) => void;
-  setGlowColor: (value: string) => void;
-  setGlowAlpha: (value: number) => void;
   setGlowSize: (value: number) => void;
   setBackgroundColor: (value: string) => void;
   setBackgroundAlpha: (value: number) => void;
   setCellShape: (value: CellShape) => void;
-  setShapeInnerRadius: (value: number) => void;
   setGridSize: (size: number) => void;
   setGridGap: (value: number) => void;
-  setRadius: (value: number) => void;
   setLayoutType: (type: LayoutType) => void;
   setLabel: (value: string) => void;
   setExportFormat: (format: ExportFormat) => void;
@@ -109,8 +107,8 @@ function sanitizeGrid(grid?: GridConfig): GridConfig {
   const source = grid ?? DEFAULT_DRAWN_GRID;
 
   return {
-    rows: clamp(Math.round(source.rows ?? DEFAULT_DRAWN_GRID.rows), 2, 8),
-    cols: clamp(Math.round(source.cols ?? DEFAULT_DRAWN_GRID.cols), 2, 8),
+    rows: clamp(Math.round(source.rows ?? DEFAULT_DRAWN_GRID.rows), 2, 13),
+    cols: clamp(Math.round(source.cols ?? DEFAULT_DRAWN_GRID.cols), 2, 13),
     cellSize: source.cellSize ?? DEFAULT_DRAWN_GRID.cellSize,
     gap: clamp(Math.round(source.gap ?? DEFAULT_DRAWN_GRID.gap), 0, 20),
     symmetryX: source.symmetryX,
@@ -160,14 +158,14 @@ function normalizeMotionPresetId(value: unknown, fallbackPresetId: MotionPresetI
     case "checkerboard":
     case "rain":
     case "pinwheel":
+    case "radar": case "orbit": case "heartbeat": case "equalizer": case "dna": case "sparkle": case "breathing": case "sine": case "collapse":
       return value;
     case "center-out":
     case "converge":
       return "ripple";
     case "cross":
       return "checkerboard";
-    case "orbit":
-      return "pinwheel";
+
     case "zigzag":
       return "wave";
     default:
@@ -207,7 +205,8 @@ function normalizeAnimation(
     direction: normalizeDirection(merged.direction),
     originX: clamp(Math.round(merged.originX ?? Math.ceil(grid.cols / 2)), 1, grid.cols),
     originY: clamp(Math.round(merged.originY ?? Math.ceil(grid.rows / 2)), 1, grid.rows),
-    fps: clamp(Math.round(merged.fps ?? 18), 1, 30),
+    fps: clamp(Math.round(merged.fps ?? 30), 1, 60),
+    speed: clamp(Number(merged.speed ?? 1), .25, 3),
     durationMs: clamp(Math.round(merged.durationMs ?? 1200), 520, 4800),
     staggerMs: Math.max(0, Math.round(merged.staggerMs ?? 0)),
     scaleIntensity: clamp(Number(merged.scaleIntensity ?? 0.24), 0, 1)
@@ -408,8 +407,8 @@ function normalizeProject(project: Project): Project {
       ...project.assets,
       patterns: (project.assets.patterns ?? []).map((pattern) => ({
         ...pattern,
-        rows: clamp(Math.round(pattern.rows ?? DEFAULT_DRAWN_GRID.rows), 2, 8),
-        cols: clamp(Math.round(pattern.cols ?? DEFAULT_DRAWN_GRID.cols), 2, 8),
+        rows: clamp(Math.round(pattern.rows ?? DEFAULT_DRAWN_GRID.rows), 2, 13),
+        cols: clamp(Math.round(pattern.cols ?? DEFAULT_DRAWN_GRID.cols), 2, 13),
         presetId: pattern.presetId ?? "custom"
       })),
       templates: []
@@ -562,7 +561,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   selectedLoaderId: initialProject.loaders[0]?.id ?? "",
   focusModeLoaderId: null,
   clipboardLoader: null,
-  exportFormat: "lottie",
+  exportFormat: "web",
   isPreviewing: false,
   hydrate: () => {
     const persisted = loadProject();
@@ -682,8 +681,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         state.project.loaders.find((loader) => loader.id === state.selectedLoaderId) ??
         state.project.loaders[state.project.loaders.length - 1];
       const sequenceId = kind === "sequence" ? crypto.randomUUID() : undefined;
+      const loader = createBlankCustomLoader(state.project.loaders.length, base, kind, sequenceId);
       const nextLoader = {
-        ...createBlankCustomLoader(state.project.loaders.length, base, kind, sequenceId),
+        ...loader,
+        animation: kind === "sequence"
+          ? { ...loader.animation, fps: 6 }
+          : loader.animation,
         artboard: findNearbyArtboardPosition(state.project.loaders, base)
       };
       const project = {
@@ -906,6 +909,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       return { project };
     }),
   setAnimationMode: () => undefined,
+  fillGrid: (filled) => set((state) => {
+    const project = updateSelectedLoader(state.project, state.selectedLoaderId, loader => ({...loader, pattern: {...loader.pattern, activeCells: filled ? Array.from({length: loader.pattern.grid.rows * loader.pattern.grid.cols}, (_, i) => i) : []}}));
+    saveProject(project); return {project};
+  }),
   setMotionPreset: (presetId) =>
     set((state) => {
       const project = updateSelectedLoader(state.project, state.selectedLoaderId, (loader) => {
@@ -972,7 +979,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       saveProject(project);
       return { project };
     }),
-  setScaleIntensity: () => undefined,
+  setScaleIntensity: (value) => set((state) => {
+    const project = updateSelectedLoader(state.project, state.selectedLoaderId, loader => ({...loader, animation: {...loader.animation, scaleIntensity: clamp(value, 0, 1)}}));
+    saveProject(project); return {project};
+  }),
+  setSpeed: (value) => set((state) => {
+    const project = updateSelectedLoader(state.project, state.selectedLoaderId, loader => ({...loader, animation: {...loader.animation, speed: clamp(value, .25, 3)}}));
+    saveProject(project); return {project};
+  }),
   setAnimationStyle: (value) =>
     set((state) => {
       const project = updateSelectedLoader(state.project, state.selectedLoaderId, (loader) => ({
@@ -1038,32 +1052,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       saveProject(project);
       return { project };
     }),
-  setGlowColor: (value) =>
-    set((state) => {
-      const project = updateSelectedLoader(state.project, state.selectedLoaderId, (loader) => ({
-        ...loader,
-        style: {
-          ...loader.style,
-          glowColor: value
-        }
-      }), { updateSequence: true });
-
-      saveProject(project);
-      return { project };
-    }),
-  setGlowAlpha: (value) =>
-    set((state) => {
-      const project = updateSelectedLoader(state.project, state.selectedLoaderId, (loader) => ({
-        ...loader,
-        style: {
-          ...loader.style,
-          glowAlpha: clamp(value, 0, 1)
-        }
-      }), { updateSequence: true });
-
-      saveProject(project);
-      return { project };
-    }),
   setGlowSize: (value) =>
     set((state) => {
       const project = updateSelectedLoader(state.project, state.selectedLoaderId, (loader) => ({
@@ -1116,22 +1104,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       saveProject(project);
       return { project };
     }),
-  setShapeInnerRadius: (value) =>
-    set((state) => {
-      const project = updateSelectedLoader(state.project, state.selectedLoaderId, (loader) => ({
-        ...loader,
-        style: {
-          ...loader.style,
-          innerRadius: clamp(Number(value), 0.2, 0.8)
-        }
-      }), { updateSequence: true });
-
-      saveProject(project);
-      return { project };
-    }),
   setGridSize: (size) =>
     set((state) => {
-      const nextSize = clamp(Math.round(size), 2, 8);
+      const nextSize = clamp(Math.round(size), 3, 13);
       const project = updateSelectedLoader(state.project, state.selectedLoaderId, (loader) => {
         const nextGrid = sanitizeGrid({
           ...loader.pattern.grid,
@@ -1181,19 +1156,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           }
         };
       }, { updateSequence: true });
-
-      saveProject(project);
-      return { project };
-    }),
-  setRadius: (value) =>
-    set((state) => {
-      const project = updateSelectedLoader(state.project, state.selectedLoaderId, (loader) => ({
-        ...loader,
-        style: {
-          ...loader.style,
-          radius: clamp(value, 0, loader.pattern.grid.cellSize / 2)
-        }
-      }), { updateSequence: true });
 
       saveProject(project);
       return { project };

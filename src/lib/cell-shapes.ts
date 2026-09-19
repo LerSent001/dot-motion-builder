@@ -1,12 +1,13 @@
 import { CellShape, LoaderComponent } from "@/types/dot-motion";
 
-export const shapeOptions: Array<{ value: Exclude<CellShape, "square" | "rounded-rect" | "circle" | "pill"> }> = [
+export const shapeOptions = [
   { value: "rectangle" },
-  { value: "triangle" },
-  { value: "star" },
+  { value: "square" },
+  { value: "circle" },
   { value: "diamond" },
-  { value: "heart" }
-];
+  { value: "hexagon" },
+  { value: "star" }
+] as const satisfies ReadonlyArray<{ value: CellShape }>;
 
 export function normalizeCellShape(value: unknown): CellShape {
   switch (value) {
@@ -14,12 +15,13 @@ export function normalizeCellShape(value: unknown): CellShape {
     case "triangle":
     case "star":
     case "diamond":
+    case "hexagon":
     case "heart":
-      return value;
     case "square":
     case "rounded-rect":
     case "circle":
     case "pill":
+      return value;
     default:
       return "rectangle";
   }
@@ -54,6 +56,8 @@ export function getCellClipPath(shape: CellShape, innerRadius?: number) {
       return buildStarPolygon(innerRadius);
     case "diamond":
       return "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)";
+    case "hexagon":
+      return "polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%)";
     case "heart":
       return "polygon(50% 94%, 11% 58%, 4% 48%, 1% 35%, 5% 21%, 15% 10%, 29% 6%, 40% 10%, 50% 22%, 60% 10%, 71% 6%, 85% 10%, 95% 21%, 99% 35%, 96% 48%, 89% 58%)";
     case "rectangle":
@@ -69,13 +73,14 @@ export function getCellShapeClassName(loader: LoaderComponent) {
 export function getCellShapeStyle(loader: LoaderComponent, renderedCellSize: number): Record<string, string | number | undefined> {
   const shape = normalizeCellShape(loader.style.cellShape);
   const clipPath = getCellClipPath(shape, loader.style.innerRadius);
-  const radius = Math.min(
-    renderedCellSize / 2,
-    Math.max(loader.style.radius, loader.style.radius * (renderedCellSize / Math.max(loader.pattern.grid.cellSize, 1)))
-  );
+  const radius = shape === "circle"
+    ? renderedCellSize / 2
+    : shape === "rectangle" || shape === "rounded-rect" || shape === "pill"
+      ? renderedCellSize * 0.22
+      : 0;
 
   return {
-    borderRadius: shape === "rectangle" ? radius : 0,
+    borderRadius: radius,
     clipPath,
     ["--cell-clip-path"]: clipPath
   };

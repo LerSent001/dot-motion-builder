@@ -14,6 +14,7 @@ export type Easing = "linear" | "ease-in" | "ease-out" | "ease-in-out";
 export type AnimationStyle = "opacity-only" | "pulse-size" | "depth-shift" | "bloom-pop";
 export type InactiveStyle = "none" | "static-dim" | "breathe" | "ghost";
 export type MotionPresetId =
+  | "radar" | "orbit" | "heartbeat" | "equalizer" | "dna" | "sparkle" | "breathing" | "sine" | "collapse"
   | "blink"
   | "wave"
   | "sweep"
@@ -32,6 +33,7 @@ export type CellShape =
   | "triangle"
   | "star"
   | "diamond"
+  | "hexagon"
   | "heart"
   | "square"
   | "rounded-rect"
@@ -44,7 +46,7 @@ export type LayoutType =
   | "status-pill"
   | "button-loader"
   | "card-loader";
-export type ExportFormat = "project-json" | "svg" | "css" | "react" | "lottie" | "svga" | "png-sequence";
+export type ExportFormat = "web" | "swift";
 export type PatternPresetId = "spinner" | "checker" | "ring" | "wave-diagonal";
 
 export type Project = {
@@ -146,6 +148,7 @@ export type AnimationConfig = {
   style: AnimationStyle;
   inactiveStyle: InactiveStyle;
   scaleIntensity?: number;
+  speed?: number;
 };
 
 export type StyleConfig = {
@@ -251,5 +254,4 @@ export type ExportArtifact = {
   filename: string;
   mimeType: string;
   content: string;
-  notes?: string[];
 };
