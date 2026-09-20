@@ -17,9 +17,16 @@ export type CanvasGridMetrics = {
 
 export function getCanvasGridMetrics(loader: LoaderComponent): CanvasGridMetrics {
   const { rows, cols, gap } = loader.pattern.grid;
-  const renderGap = Math.max(0, Math.round(gap));
   const squareStage = Math.min(loader.artboard.width, loader.artboard.height);
   const availableSide = squareStage - CANVAS_FRAME_INSET * 2 - CANVAS_GRID_PADDING * 2;
+  const requestedGap = Math.max(0, Math.round(gap));
+  // The reference fish-eye uses a 16 px cell with a 3 px gap. Preserve that
+  // breathing room at every output size so the 1.3x lens bulge stays organic
+  // instead of collapsing into a dense, overlapping block.
+  const fishEyeCell = availableSide / (Math.max(rows, cols) + .2 * (Math.max(rows, cols) - 1));
+  const renderGap = loader.animation.style === "fisheye"
+    ? Math.max(requestedGap, Math.round(fishEyeCell * .2))
+    : requestedGap;
   const availableWidth = availableSide - (cols - 1) * renderGap;
   const availableHeight = availableSide - (rows - 1) * renderGap;
   const cellSize = Math.max(22, Math.floor(Math.min(availableWidth / cols, availableHeight / rows)));

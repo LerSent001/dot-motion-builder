@@ -10,17 +10,24 @@ require.extensions['.ts'] = (mod, filename) => mod._compile(ts.transpileModule(f
 const {createMockProject} = require('../src/lib/mock-project.ts');
 const {motionPresets, getDefaultMotionConfig} = require('../src/lib/motion-presets.ts');
 const {sampleMotion, getCycleDuration} = require('../src/lib/core/motion-sampler.ts');
+const {getCanvasGridMetrics} = require('../src/lib/canvas-grid-metrics.ts');
 const {compileTimeline} = require('../src/lib/core/timeline.ts');
 const {generateExportArtifact} = require('../src/lib/exporters/index.ts');
 const {buildMotionData} = require('../src/lib/exporters/motion-data.ts');
 let checks = 0;
-assert.equal(motionPresets.length, 44, 'curated reference-adapted catalog size');
+assert.equal(motionPresets.length, 12, 'sparse-grid-safe preset catalog size');
+const removedPresetIds = [
+  'blink', 'pulse', 'ripple', 'spinner', 'orbit', 'equalizer', 'dna', 'sparkle', 'collapse',
+  'spiral', 'corners', 'snake', 'typewriter', 'row-scan', 'column-scan', 'matrix', 'box-trace',
+  'cross-wave', 'heart-wave', 'letter-t', 'letter-x', 'letter-o', 'thinking-dots', 'neural-network',
+  'searching', 'connecting', 'progress-bar', 'success', 'error', 'arrow-right', 'arrow-left', 'hourglass', 'glitch', 'sine', 'rain'
+];
 assert.deepEqual(
-  motionPresets.filter(({id}) => ['blink', 'pulse', 'ripple'].includes(id)).map(({id}) => id),
+  motionPresets.filter(({id}) => removedPresetIds.includes(id)).map(({id}) => id),
   [],
-  'removed presets must not return'
+  'fill-dependent and retired presets must not return'
 );
-for (const preset of motionPresets) for (const size of [2, 5, 8]) {
+for (const preset of motionPresets) for (const size of [2, 5, 8, 13]) {
   const loader = structuredClone(createMockProject().loaders[0]);
   loader.pattern.grid.rows = loader.pattern.grid.cols = size;
   loader.pattern.activeCells = [0, size * size - 1];
@@ -76,18 +83,29 @@ const expectedWave = (Math.sin(waveCol * .8 + waveRow * .3 - wavePhase * Math.PI
 assert(Math.abs(sampleMotion(referenceWave, waveRow * 5 + waveCol, wavePhase).opacity - expectedWave) < 1e-12, 'wave parameters match reference');
 
 const deterministic = structuredClone(referenceWave);
-deterministic.animation = {...deterministic.animation, ...getDefaultMotionConfig('matrix')};
+deterministic.animation = {...deterministic.animation, ...getDefaultMotionConfig('random')};
 assert.deepEqual(sampleMotion(deterministic, 7, .375), sampleMotion(deterministic, 7, .375), 'random-looking presets stay deterministic');
 
+const fishEyeMetrics = getCanvasGridMetrics({
+  ...structuredClone(referenceWave),
+  animation: {...referenceWave.animation, ...getDefaultMotionConfig('fish-eye')}
+});
+assert(
+  fishEyeMetrics.gap / fishEyeMetrics.cellSize >= .18 && fishEyeMetrics.gap / fishEyeMetrics.cellSize <= .22,
+  'fish-eye spacing must preserve the reference 3:16 gap-to-cell ratio'
+);
+
 for (const preset of motionPresets) {
-  const loader = structuredClone(createMockProject().loaders[0]);
-  loader.pattern.grid.rows = loader.pattern.grid.cols = 5;
-  loader.pattern.activeCells = Array.from({length:25}, (_, index) => index);
-  loader.animation = {...loader.animation, ...getDefaultMotionConfig(preset.id), originX:3, originY:3, speed:1};
-  const frames = Array.from({length:24}, (_, frameIndex) =>
-    loader.pattern.activeCells.map(cellIndex => sampleMotion(loader, cellIndex, frameIndex / 24).opacity)
-  );
-  assert(Math.max(...frames.flat()) >= .2, `${preset.id} must produce a visible frame`);
-  assert(new Set(frames.map(frame => frame.map(value => value.toFixed(4)).join(','))).size > 1, `${preset.id} must animate over time`);
+  for (const size of [2, 5, 8, 13]) {
+    const loader = structuredClone(createMockProject().loaders[0]);
+    loader.pattern.grid.rows = loader.pattern.grid.cols = size;
+    loader.pattern.activeCells = [0, Math.floor(size * size / 2), size * size - 1];
+    loader.animation = {...loader.animation, ...getDefaultMotionConfig(preset.id), originX:(size + 1) / 2, originY:(size + 1) / 2, speed:1};
+    for (let cellIndex = 0; cellIndex < size * size; cellIndex += 1) {
+      const samples = Array.from({length:24}, (_, frameIndex) => sampleMotion(loader, cellIndex, frameIndex / 24).opacity);
+      assert(Math.max(...samples) >= .2, `${preset.id} must visibly animate ${size}x${size} cell ${cellIndex}`);
+      assert(new Set(samples.map(value => value.toFixed(4))).size > 1, `${preset.id} must vary ${size}x${size} cell ${cellIndex}`);
+    }
+  }
 }
-console.log(`PASS: ${motionPresets.length} presets, 2/5/8 grids, ${checks} samples; mask, loop, exports and speed.`);
+console.log(`PASS: ${motionPresets.length} sparse-grid-safe presets, 2/5/8/13 grids, ${checks} samples; fish-eye spacing, mask, loop, exports and speed.`);

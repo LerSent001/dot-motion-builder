@@ -15,7 +15,7 @@ The editor runs entirely in the browser. It has no account system, backend API, 
 - Direct cell drawing, plus Fill Grid and Clear Grid actions.
 - Square grids from 3×3 through 13×13.
 - Six exposed cell shapes: Rounded, Square, Circle, Diamond, Hexagon, and Star.
-- 44 motion presets with direction- and origin-aware controls where applicable.
+- 12 mask-safe motion presets with direction- and origin-aware controls where applicable.
 - Separate active-cell and inactive-cell animation styles.
 - Active and inactive colors with opacity controls.
 - Optional glow whose color follows the active color.
@@ -25,17 +25,9 @@ The editor runs entirely in the browser. It has no account system, backend API, 
 
 ## Motion presets
 
-The current preset library includes:
+The current preset library includes Wave, Sweep, Fish-eye Lens, Burst, Bloom, Diamond, Radar, Random, Checkerboard, Heartbeat, Breathing, and Pinwheel.
 
-- Core loaders: Spinner, Breathing, Heartbeat
-- Waves and radial motion: Wave, Sweep, Sine Wave, Fish-eye Lens, Burst, Bloom, Collapse, Diamond
-- Paths and scans: Snake, Spiral, Typewriter, Row Scan, Column Scan, Radar, Searching, Box Trace
-- Field effects: Rain, Matrix, Glitch, Random, Sparkle, Pinwheel, Neural Network
-- Shapes and states: Corners, Cross, Heart, Checkerboard, Thinking Dots, Connecting, Progress Bar, Success, Error, Hourglass
-- Abstract and directional motion: Arrow Right, Arrow Left, Equalizer, Orbit, DNA Helix
-- Reusable letter masks: Letter T, Letter X, Letter O
-
-Pulse, Ripple, and Blink remain intentionally excluded. Fixed brand words, icon packs, and game-like reference patterns are also excluded because they are content assets rather than reusable motion behavior.
+Every preset is mask-safe: each selected cell visibly participates over a cycle even when the grid is sparse. Fill-dependent paths, scans, icons, letters, and state drawings are intentionally excluded because those effects become incomplete or invisible when users draw a custom mask. Pulse, Ripple, and Blink also remain excluded.
 
 Presets use a shared deterministic sampler, so the editor preview, Web export, and SwiftUI export consume the same motion data instead of maintaining separate platform-specific preset implementations.
 
@@ -55,7 +47,7 @@ The inspector is organized into five focused sections:
 - Fill Grid
 - Clear Grid
 
-The grid does not have to be filled. Any subset of cells can be active, including an empty grid.
+The grid does not have to be filled. Any subset of cells can be active, and all available motion presets are validated against sparse masks.
 
 ### Animation
 

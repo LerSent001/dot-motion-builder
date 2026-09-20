@@ -5,14 +5,16 @@ const page = await browser.newPage({viewport:{width:1440,height:1000}});
 const errors=[];
 page.on('pageerror', e=>errors.push(e.message));
 await page.goto('http://127.0.0.1:3108/editor');
-await page.getByRole('button',{name:'填满点阵',exact:true}).click();
+const canvasCells = page.locator('.dot-grid--canvas [data-dot-cell="true"]');
+for (const index of [0, 7, 14, 21, 28]) await canvasCells.nth(index).dispatchEvent('pointerdown');
+assert.equal(await page.locator('.dot-grid--canvas [data-dot-cell="true"].is-active').count(),5,'QA mask must stay sparse');
 await page.getByRole('button',{name:'预览动画',exact:true}).click();
 const panelCombos = page.locator('[data-slot="toolcraft-panel-content"] [role="combobox"]');
 const presets = panelCombos.nth(1);
 await presets.click();
 await page.locator('[role="option"]').first().waitFor({state:'visible'});
 const presetCount = await page.locator('[role="option"]').count();
-assert.equal(presetCount,44);
+assert.equal(presetCount,12);
 await page.keyboard.press('Escape');
 for (let index = 0; index < presetCount; index += 1) {
   await presets.click();
@@ -20,12 +22,18 @@ for (let index = 0; index < presetCount; index += 1) {
   await page.locator('[role="option"]').nth(index).click();
   await page.waitForTimeout(100);
   const values=await page.locator('.preview-loader__cell').evaluateAll(es=>es.map(e=>({o:getComputedStyle(e).opacity,t:getComputedStyle(e).transform})));
-  assert(values.length >= 72);
+  assert(values.length >= 41);
   assert(!JSON.stringify(values).includes('NaN'));
 }
 await presets.click();
 await page.locator('[role="option"]').first().waitFor({state:'visible'});
 await page.locator('[role="option"]').filter({hasText:'鱼眼镜头'}).click();
+const fishEyeSpacing = await page.locator('.preview-loader__grid').evaluate(grid => {
+  const [first, second] = Array.from(grid.children);
+  const width = Number.parseFloat(first.style.width);
+  return (Number.parseFloat(second.style.left) - width) / width;
+});
+assert(fishEyeSpacing >= .18 && fishEyeSpacing <= .22,'fish-eye preview must preserve the reference spacing ratio');
 const speedSlider=page.getByRole('slider',{name:'速度'});
 const scaleSlider=page.getByRole('slider',{name:'缩放强度'});
 await speedSlider.press('Home');
@@ -72,5 +80,5 @@ await page.getByRole('button',{name:'下载',exact:true}).click();
 await (await swiftDownload).saveAs('/tmp/DotMotionView.swift');
 await exported.close();
 assert.deepEqual(errors,[]);
-console.log('PASS: 44 preset switches, fill, playback, speed, scale, persistence, export dialog; no page errors.');
+console.log('PASS: 12 sparse-grid-safe preset switches, playback, speed, scale, persistence, export dialog; no page errors.');
 await browser.close();

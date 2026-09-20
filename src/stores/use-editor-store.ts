@@ -150,54 +150,64 @@ function normalizeMotionPresetId(value: unknown, fallbackPresetId: MotionPresetI
     case "sweep":
     case "bloom":
     case "fish-eye":
-    case "spiral":
-    case "corners":
-    case "snake":
     case "checkerboard":
-    case "rain":
     case "pinwheel":
-    case "spinner":
     case "burst":
-    case "typewriter":
-    case "row-scan":
-    case "column-scan":
-    case "matrix":
-    case "glitch":
     case "random":
     case "diamond-wave":
-    case "box-trace":
+    case "radar":
+    case "heartbeat":
+    case "breathing":
+      return value;
+    case "blink":
+    case "zigzag":
+      return "wave";
+    case "ripple":
+      return "fish-eye";
+    case "pulse":
     case "cross-wave":
     case "heart-wave":
     case "letter-t":
     case "letter-x":
     case "letter-o":
     case "thinking-dots":
-    case "neural-network":
-    case "searching":
-    case "connecting":
-    case "progress-bar":
     case "success":
     case "error":
-    case "arrow-right":
-    case "arrow-left":
     case "hourglass":
-    case "radar": case "orbit": case "heartbeat": case "equalizer": case "dna": case "sparkle": case "breathing": case "sine": case "collapse":
-      return value;
-    case "blink":
-      return "wave";
-    case "ripple":
-      return "fish-eye";
-    case "pulse":
       return "breathing";
     case "center-out":
-      return "bloom";
     case "converge":
-      return "collapse";
-    case "cross":
-      return "cross-wave";
-
-    case "zigzag":
+    case "collapse":
+    case "corners":
+    case "sparkle":
+    case "neural-network":
+    case "connecting":
+      return "bloom";
+    case "spinner":
+    case "orbit":
+    case "spiral":
+    case "snake":
+    case "box-trace":
+      return "radar";
+    case "typewriter":
+    case "row-scan":
+    case "column-scan":
+    case "searching":
+    case "progress-bar":
+    case "arrow-right":
+    case "arrow-left":
+      return "sweep";
+    case "matrix":
+    case "rain":
+      return "random";
+    case "glitch":
+      return "random";
+    case "equalizer":
+    case "dna":
+    case "sine":
       return "wave";
+    case "cross":
+      return "checkerboard";
     default:
       return fallbackPresetId;
   }
