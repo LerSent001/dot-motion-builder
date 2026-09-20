@@ -11,6 +11,7 @@ The editor runs entirely in the browser. It has no account system, backend API, 
 ## Highlights
 
 - Pan-and-zoom canvas with multiple independent artboards.
+- Bottom-center Focus Canvas control that recenters all artboards and fits oversized layouts into view.
 - Custom loaders and frame-based sequence animations.
 - Direct cell drawing, plus Fill Grid and Clear Grid actions.
 - Square grids from 3×3 through 13×13.

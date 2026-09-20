@@ -549,6 +549,60 @@ export function EditorApp() {
     zoomTo(canvas.zoom * delta, event.clientX, event.clientY);
   }
 
+  function centerCanvasContent() {
+    const viewport = viewportRef.current;
+    if (!viewport || project.loaders.length === 0) {
+      return;
+    }
+
+    const contentLeft = Math.min(...project.loaders.map((loader) => loader.artboard.x));
+    const contentTop = Math.min(...project.loaders.map((loader) => loader.artboard.y));
+    const contentRight = Math.max(...project.loaders.map((loader) => loader.artboard.x + loader.artboard.width));
+    const contentBottom = Math.max(...project.loaders.map((loader) => loader.artboard.y + loader.artboard.height));
+    const contentWidth = Math.max(contentRight - contentLeft, 1);
+    const contentHeight = Math.max(contentBottom - contentTop, 1);
+    const viewportRect = viewport.getBoundingClientRect();
+    const edgePadding = 48;
+    let visibleLeft = edgePadding;
+    let visibleRight = viewportRect.width - edgePadding;
+    const visibleTop = 64;
+    const visibleBottom = viewportRect.height - 72;
+    const sidebar = document.querySelector<HTMLElement>(".settings-sidebar.is-open:not(.is-hidden)");
+
+    if (sidebar) {
+      const sidebarRect = sidebar.getBoundingClientRect();
+      const overlapsViewport = sidebarRect.top < viewportRect.bottom && sidebarRect.bottom > viewportRect.top;
+      const occupiesRightSide = sidebarRect.left > viewportRect.left + viewportRect.width / 2;
+      if (overlapsViewport && occupiesRightSide) {
+        visibleRight = Math.min(visibleRight, sidebarRect.left - viewportRect.left - 24);
+      }
+    }
+
+    const availableWidth = Math.max(visibleRight - visibleLeft, 1);
+    const availableHeight = Math.max(visibleBottom - visibleTop, 1);
+    const targetZoom = Math.min(
+      1,
+      Math.max(
+        .25,
+        Math.min(
+          (availableWidth - edgePadding * 2) / contentWidth,
+          (availableHeight - edgePadding * 2) / contentHeight
+        )
+      )
+    );
+    const targetCenterX = (visibleLeft + visibleRight) / 2;
+    const targetCenterY = (visibleTop + visibleBottom) / 2;
+    const contentCenterX = contentLeft + contentWidth / 2;
+    const contentCenterY = contentTop + contentHeight / 2;
+
+    setCanvasView({
+      zoom: Number(targetZoom.toFixed(3)),
+      panX: Number((targetCenterX - contentCenterX * targetZoom).toFixed(2)),
+      panY: Number((targetCenterY - contentCenterY * targetZoom).toFixed(2))
+    });
+    pulseZoomHud();
+  }
+
   function handleViewportPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement;
     const artboard = target.closest("[data-artboard-id]") as HTMLElement | null;
@@ -847,6 +901,19 @@ export function EditorApp() {
               ))}
             </div>
           </div>
+
+          <button
+            type="button"
+            className="canvas-center-button"
+            onClick={centerCanvasContent}
+            aria-label={t.centerCanvas}
+            title={t.centerCanvas}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 4H6a2 2 0 0 0-2 2v3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3" />
+              <circle cx="12" cy="12" r="2.25" />
+            </svg>
+          </button>
 
         </div>
 

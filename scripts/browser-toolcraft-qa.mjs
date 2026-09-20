@@ -15,6 +15,11 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 820, height: 900
   );
   assert.equal(await page.getByText('预设', { exact: true }).count(), 2);
   assert.equal(await page.locator('.dot-grid-editor-shell__badge').count(), 0);
+  const canvasBox = await page.locator('.builder-canvas').boundingBox();
+  const centerCanvasButton = page.getByRole('button', { name: '居中画布' });
+  const centerButtonBox = await centerCanvasButton.boundingBox();
+  assert(canvasBox && centerButtonBox);
+  assert(Math.abs(centerButtonBox.x + centerButtonBox.width / 2 - (canvasBox.x + canvasBox.width / 2)) < 1);
   const controls = page.locator('[data-slot="toolcraft-panel-content"] [role="combobox"]');
   await controls.first().click();
   await page.locator('[role="option"]').first().waitFor({ state: 'visible' });
@@ -28,6 +33,24 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 820, height: 900
   assert.equal(await page.getByRole('slider', { name: '间距' }).count(), 1);
   assert.equal(await controls.count(), 4);
   if (viewport.width === 1440) {
+    const surface = page.locator('.builder-canvas__surface');
+    const initialTransform = await surface.evaluate(element => element.style.transform);
+    await page.mouse.move(800, 700);
+    await page.mouse.wheel(0, -100);
+    await page.waitForTimeout(60);
+    await page.mouse.wheel(0, 100);
+    await page.waitForTimeout(100);
+    assert.notEqual(await surface.evaluate(element => element.style.transform), initialTransform);
+    await centerCanvasButton.click();
+    await page.waitForTimeout(100);
+    assert((await surface.evaluate(element => element.style.transform)).endsWith('scale(1)'));
+    const centeredArtboard = await page.locator('.canvas-artboard').first().boundingBox();
+    const sidebar = await page.locator('.settings-sidebar').boundingBox();
+    assert(centeredArtboard && sidebar);
+    const expectedCenterX = (48 + sidebar.x - 24) / 2;
+    const expectedCenterY = (64 + canvasBox.height - 72) / 2;
+    assert(Math.abs(centeredArtboard.x + centeredArtboard.width / 2 - expectedCenterX) < 2);
+    assert(Math.abs(centeredArtboard.y + centeredArtboard.height / 2 - expectedCenterY) < 2);
     await page.locator('[data-panel-id="properties"] button[aria-label="收起参数面板"]').click();
     await page.waitForTimeout(250);
     assert((await page.locator('.settings-sidebar').getAttribute('class')).includes('is-collapsed'));

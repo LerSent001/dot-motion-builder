@@ -492,6 +492,52 @@ select {
   cursor: grabbing;
 }
 
+.canvas-center-button {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 12;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--border) 20%, transparent);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--background) 88%, transparent);
+  color: color-mix(in oklab, var(--foreground) 72%, transparent);
+  box-shadow: 0 14px 38px -20px rgb(0 0 0 / 85%);
+  backdrop-filter: blur(14px) saturate(130%);
+  cursor: pointer;
+  transform: translateX(-50%);
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.canvas-center-button:hover {
+  border-color: color-mix(in oklab, var(--accent-strong) 44%, transparent);
+  background: color-mix(in oklab, var(--accent) 10%, var(--background));
+  color: var(--foreground);
+}
+
+.canvas-center-button:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+.canvas-center-button:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent-strong) 68%, transparent);
+  outline-offset: 3px;
+}
+
+.canvas-center-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .builder-canvas__surface {
   position: absolute;
   left: 0;
