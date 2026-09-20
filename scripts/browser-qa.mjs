@@ -12,7 +12,7 @@ const presets = panelCombos.nth(1);
 await presets.click();
 await page.locator('[role="option"]').first().waitFor({state:'visible'});
 const presetCount = await page.locator('[role="option"]').count();
-assert.equal(presetCount,22);
+assert.equal(presetCount,19);
 await page.keyboard.press('Escape');
 for (let index = 0; index < presetCount; index += 1) {
   await presets.click();
@@ -72,5 +72,5 @@ await page.getByRole('button',{name:'下载',exact:true}).click();
 await (await swiftDownload).saveAs('/tmp/DotMotionView.swift');
 await exported.close();
 assert.deepEqual(errors,[]);
-console.log('PASS: 22 preset switches, fill, playback, speed, scale, persistence, export dialog; no page errors.');
+console.log('PASS: 19 preset switches, fill, playback, speed, scale, persistence, export dialog; no page errors.');
 await browser.close();

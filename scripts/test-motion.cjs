@@ -19,6 +19,7 @@ for (const preset of motionPresets) for (const size of [2, 5, 8]) {
   loader.pattern.grid.rows = loader.pattern.grid.cols = size;
   loader.pattern.activeCells = [0, size * size - 1];
   loader.animation = {...loader.animation, ...getDefaultMotionConfig(preset.id), originX: (size + 1) / 2, originY: (size + 1) / 2, speed: 1};
+  if (preset.id === 'fish-eye') assert.equal(loader.animation.style, 'fisheye');
   for (let cell = 0; cell < size * size; cell++) {
     assert.deepEqual(sampleMotion(loader, cell, 0), sampleMotion(loader, cell, 1), 'loop endpoints');
     for (const phase of [.001, .1, .3, .5, .9, .999]) {
@@ -26,6 +27,15 @@ for (const preset of motionPresets) for (const size of [2, 5, 8]) {
       assert(Number.isFinite(value.opacity) && value.opacity >= 0 && value.opacity <= 1);
       assert(Number.isFinite(value.scale) && value.scale >= 0 && value.scale <= 1.31);
       checks++;
+    }
+    if (preset.id === 'fish-eye') {
+      const value = sampleMotion(loader, cell, .3);
+      const row = Math.floor(cell / size), col = cell % size;
+      const center = (size - 1) / 2;
+      const distance = Math.hypot(col - center, row - center);
+      const radius = Math.max(Math.hypot(center, center), 1);
+      const referenceScale = (1.3 - distance / radius * .6) * (.5 + value.opacity * .5);
+      assert(Math.abs(value.scale - referenceScale) < 1e-12, 'fish-eye must match the reference lens formula');
     }
   }
   const timeline = compileTimeline(loader);

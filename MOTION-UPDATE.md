@@ -6,9 +6,9 @@ The reference renders the inspected grid as DOM/SVG (no canvas in the inspected 
 
 ## Implemented
 
-- Rebuilt 13 existing presets around deterministic spatial brightness fields.
-- Added Radar, Orbit, Heartbeat, Equalizer, DNA Helix, Sparkle, Breathing, Sine Wave and Collapse (22 total).
-- Added visual preset thumbnails, fill/clear grid, opacity/pulse/shrink/pop styles, scale intensity, and independent playback speed (0.25–3×).
+- Rebuilt the original preset library around deterministic spatial brightness fields.
+- Added Radar, Orbit, Heartbeat, Equalizer, DNA Helix, Sparkle, Breathing, Sine Wave and Collapse (19 total after removing Blink, Ripple and Pulse).
+- Added visual preset thumbnails, fill/clear grid, opacity/pulse/fish-eye/shrink/pop styles, scale intensity, and independent playback speed (0.25–3×).
 - Kept the user's selected-cell mask when switching presets.
 - Removed brightness thresholds that abruptly changed cell color/scale, removed the extra preview-only animation layer, and removed the grid-density frame-rate cap.
 - Preview and both standalone export runtimes share sampled motion and background brightness. Web uses Canvas in a custom element; SwiftUI uses Canvas and TimelineView.
@@ -17,15 +17,15 @@ The reference renders the inspected grid as DOM/SVG (no canvas in the inspected 
 
 ## Fidelity boundary
 
-This is an adaptation of the reference's core grid-motion behavior, not a pixel-identical port of every pattern. Reference wave/ripple/size relationships informed the implementation. Added motifs use independently implemented deterministic formulas. Random-looking effects are deterministic for reproducible exports; some hard-stepped reference effects are interpolated for smoother playback.
+This is an adaptation of the reference's core grid-motion behavior, not a pixel-identical port of every pattern. Fish-eye Lens uses the reference's diagonal brightness wave and radial lens-scale formula. Added motifs use independently implemented deterministic formulas. Random-looking effects are deterministic for reproducible exports; some hard-stepped reference effects are interpolated for smoother playback.
 
 Node connections, chromatic/glass/glitch filters, image masks, text shimmer and pattern morphing from the reference are not included. Exports are now exclusively standalone Web and SwiftUI source. Sequence exports play frames directly, rather than returning a JSON handoff. The editor panel is intentionally omitted; exported backgrounds are transparent. Font rendering and glow kernels differ between browsers and SwiftUI.
 
 ## Verification
 
 - TypeScript typecheck and production build.
-- `node scripts/test-motion.cjs`: 22 presets on 2×2, 5×5 and 8×8 grids, 12,276 finite/range samples, loop endpoint equality, mask preservation, shared timeline samples and speed scaling.
-- `scripts/browser-qa.mjs`: switches all 22 presets, fills a grid, verifies animation advances, changes speed/scale, reloads and checks persistence; no page errors.
+- `node scripts/test-motion.cjs`: 19 presets on 2×2, 5×5 and 8×8 grids, 10,602 finite/range samples, loop endpoint equality, mask preservation, the reference fish-eye formula, shared timeline samples and speed scaling.
+- `scripts/browser-qa.mjs`: switches all 19 presets, fills a grid, verifies animation advances, changes speed/scale, reloads and checks persistence; no page errors.
 - Browser verification covers the generated JavaScript Web Component, pause/resume, resize, sequences, and both file downloads.
 - Generated Swift compiles and runs in an arm64 iOS Simulator app; native macOS SwiftUI static rendering is verified separately. No physical-device acceptance is claimed.
 

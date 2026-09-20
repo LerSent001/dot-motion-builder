@@ -15,7 +15,7 @@ The editor runs entirely in the browser. It has no account system, backend API, 
 - Direct cell drawing, plus Fill Grid and Clear Grid actions.
 - Square grids from 3×3 through 13×13.
 - Six exposed cell shapes: Rounded, Square, Circle, Diamond, Hexagon, and Star.
-- 22 motion presets with direction- and origin-aware controls where applicable.
+- 19 motion presets with direction- and origin-aware controls where applicable.
 - Separate active-cell and inactive-cell animation styles.
 - Active and inactive colors with opacity controls.
 - Optional glow whose color follows the active color.
@@ -27,13 +27,10 @@ The editor runs entirely in the browser. It has no account system, backend API, 
 
 The current preset library includes:
 
-- Blink
 - Wave
 - Sweep
 - Bloom
-- Fisheye Ripple
-- Ripple
-- Pulse
+- Fish-eye Lens
 - Spiral
 - Corners First
 - Snake
@@ -73,7 +70,7 @@ The grid does not have to be filled. Any subset of cells can be active, includin
 ### Animation
 
 - Playback speed
-- Active Cells: Opacity Only, Pulse Size, Shrink Active, or Pop In/Out
+- Active Cells: Opacity Only, Pulse Size, Fish-eye Lens, Shrink Active, or Pop In/Out
 - Inactive Cells: None (Static), Static Dim, Breathe, or Ghost Grid
 - Direction controls for directional presets
 - Origin X/Y controls for origin-based presets
@@ -176,7 +173,7 @@ The current exporters have been validated in Chromium and in a native SwiftUI te
 - Web output renders offline, resizes correctly, and supports pause, play, seek, speed changes, multiple instances, sequences, and non-looping playback.
 - SwiftUI output compiles as an arm64 Simulator app and renders in paused and animated states.
 - A 6 FPS sequence changes frames at the expected interval while its inactive-cell animation remains continuous.
-- Foreground geometry overlap between the two renderers measured 99.26% for a continuous animation and 98.56% for a sequence fixture.
+- Foreground geometry overlap between the two renderers measured 96.97% for the Fish-eye Lens fixture and 98.56% for a sequence fixture.
 
 Web Canvas and SwiftUI Canvas do not produce mathematically identical edge pixels. Their blur kernels, color compositing, and polygon antialiasing create small differences around glow and diagonal edges, but no supported setting or animation effect is omitted.
 

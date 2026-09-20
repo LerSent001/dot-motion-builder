@@ -29,11 +29,8 @@ export function sampleMotion(loader: LoaderComponent, cellIndex: number, progres
       const d = Math.abs(wrap(metric / (span + 3) - t + .5) - .5) * (span + 3);
       brightness = Math.max(0, 1 - d * .5); break;
     }
-    case "ripple": brightness = wave(distance * 1.5 - angle); break;
     case "bloom": brightness = Math.pow(wave(distance * 1.1 - angle), 3); break;
     case "fish-eye": brightness = wave(metric * .8 - angle); break;
-    case "pulse": brightness = .2 + wave(angle) * .8; break;
-    case "blink": brightness = Math.pow(wave(angle), 4); break;
     case "checkerboard": brightness = .15 + .85 * wave(angle + ((row + col) % 2) * Math.PI); break;
     case "spiral":
     case "snake": {
@@ -73,10 +70,10 @@ export function sampleMotion(loader: LoaderComponent, cellIndex: number, progres
   let scale = 1;
   switch (a.style) {
     case "pulse-size": scale = .3 + .7 * brightness; break;
+    case "fisheye": scale = (1.3 - centerDistance / radius * .6) * (.5 + brightness * .5); break;
     case "depth-shift": scale = 1 - .5 * brightness; break;
     case "bloom-pop": scale = brightness > .01 ? Math.min(1, brightness * 1.3 - Math.sin(brightness * TAU) * .15) : 0; break;
   }
-  if (a.presetId === "fish-eye") scale *= (1.3 - centerDistance / radius * .6) * (.5 + brightness * .5);
   scale = 1 + (scale - 1) * (a.scaleIntensity ?? 1);
   return { opacity: clamp(brightness), scale: Math.max(0, scale) };
 }

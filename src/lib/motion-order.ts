@@ -128,14 +128,11 @@ export function getMotionOrderIndex(input: OrderInput) {
     case "pinwheel":
       return getAngleOrder(row, col, rows, cols, 0.375) + Math.hypot(row - centerRow, col - centerCol) * 0.18;
     case "bloom":
-    case "ripple":
       return Math.abs(col - originCol) + Math.abs(row - originRow);
     case "fish-eye":
     case "wave":
     case "sweep":
       return getDirectionalOrderMetric(row, col, rows, cols, direction);
-    case "blink":
-    case "pulse":
     default:
       return 0;
   }

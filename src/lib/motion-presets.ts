@@ -3,11 +3,6 @@ import { AnimationConfig, MotionPreset } from "@/types/dot-motion";
 export const motionPresets: MotionPreset[] = [
   ...["radar", "orbit", "heartbeat", "equalizer", "dna", "sparkle", "breathing", "sine", "collapse"].map(id => ({id: id as AnimationConfig["presetId"], name: id, description: id, supportsOrigin: id === "collapse"})),
   {
-    id: "blink",
-    name: "Blink",
-    description: "A compact double-flash preset for selected dots."
-  },
-  {
     id: "wave",
     name: "Wave",
     description: "A staggered wave that can travel left, right, up, down, or diagonally.",
@@ -27,20 +22,9 @@ export const motionPresets: MotionPreset[] = [
   },
   {
     id: "fish-eye",
-    name: "鱼眼波浪",
-    description: "Diagonal wave delay with soft fish-eye scaling and a cyan-style fade rhythm.",
+    name: "Fish-eye Lens",
+    description: "A diagonal brightness wave shaped by the reference's radial fish-eye lens.",
     supportsDirection: true
-  },
-  {
-    id: "ripple",
-    name: "Ripple",
-    description: "Center-out ripple delay that fades and scales selected dots like a radial loader.",
-    supportsOrigin: true
-  },
-  {
-    id: "pulse",
-    name: "Pulse",
-    description: "All selected dots breathe together like a classic loader."
   },
   {
     id: "spiral",
@@ -76,17 +60,6 @@ export const motionPresets: MotionPreset[] = [
 
 export function getDefaultMotionConfig(presetId: AnimationConfig["presetId"]): Partial<AnimationConfig> {
   switch (presetId) {
-    case "blink":
-      return {
-        presetId,
-        mode: "blink",
-        direction: "right",
-        style: "opacity-only",
-        inactiveStyle: "ghost",
-        durationMs: 1080,
-        staggerMs: 0,
-        scaleIntensity: 0.14
-      };
     case "wave":
       return {
         presetId,
@@ -125,33 +98,11 @@ export function getDefaultMotionConfig(presetId: AnimationConfig["presetId"]): P
         presetId,
         mode: "wave",
         direction: "down-right",
-        style: "pulse-size",
+        style: "fisheye",
         inactiveStyle: "none",
         durationMs: 1200,
         staggerMs: 120,
         scaleIntensity: 1
-      };
-    case "ripple":
-      return {
-        presetId,
-        mode: "wave",
-        direction: "right",
-        style: "pulse-size",
-        inactiveStyle: "none",
-        durationMs: 1200,
-        staggerMs: 150,
-        scaleIntensity: 1
-      };
-    case "pulse":
-      return {
-        presetId,
-        mode: "pulse",
-        direction: "right",
-        style: "pulse-size",
-        inactiveStyle: "breathe",
-        durationMs: 1520,
-        staggerMs: 0,
-        scaleIntensity: 0.18
       };
     case "spiral":
       return {

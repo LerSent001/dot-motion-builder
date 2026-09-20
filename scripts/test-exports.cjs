@@ -9,8 +9,8 @@ const webFixture = content => `<!doctype html><html><head><meta charset="utf-8">
 const project = createMockProject();
 const loader = project.loaders[0];
 loader.pattern.activeCells = [0, 4, 12];
-loader.animation.presetId = 'ripple';
-loader.animation.style = 'pulse-size';
+loader.animation.presetId = 'fish-eye';
+loader.animation.style = 'fisheye';
 loader.animation.inactiveStyle = 'ghost';
 loader.style.cellShape = 'hexagon';
 const customWeb = generateExportArtifact('web',project,loader);

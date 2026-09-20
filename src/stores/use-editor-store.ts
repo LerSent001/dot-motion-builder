@@ -9,6 +9,7 @@ import { loadProject, saveProject } from "@/lib/persistence";
 import {
   AnimationConfig,
   AnimationMode,
+  AnimationStyle,
   CellShape,
   Direction,
   ExportFormat,
@@ -56,7 +57,7 @@ type EditorState = {
   setScaleIntensity: (value: number) => void;
   setSpeed: (value: number) => void;
   fillGrid: (filled: boolean) => void;
-  setAnimationStyle: (value: "opacity-only" | "pulse-size" | "depth-shift" | "bloom-pop") => void;
+  setAnimationStyle: (value: AnimationStyle) => void;
   setInactiveStyle: (value: "none" | "static-dim" | "breathe" | "ghost") => void;
   setPrimaryColor: (value: string) => void;
   setPrimaryAlpha: (value: number) => void;
@@ -145,13 +146,10 @@ function normalizeDirection(direction: unknown): Direction {
 
 function normalizeMotionPresetId(value: unknown, fallbackPresetId: MotionPresetId = "wave"): MotionPresetId {
   switch (value) {
-    case "blink":
     case "wave":
     case "sweep":
     case "bloom":
     case "fish-eye":
-    case "ripple":
-    case "pulse":
     case "spiral":
     case "corners":
     case "snake":
@@ -160,9 +158,16 @@ function normalizeMotionPresetId(value: unknown, fallbackPresetId: MotionPresetI
     case "pinwheel":
     case "radar": case "orbit": case "heartbeat": case "equalizer": case "dna": case "sparkle": case "breathing": case "sine": case "collapse":
       return value;
+    case "blink":
+      return "wave";
+    case "ripple":
+      return "fish-eye";
+    case "pulse":
+      return "breathing";
     case "center-out":
+      return "bloom";
     case "converge":
-      return "ripple";
+      return "collapse";
     case "cross":
       return "checkerboard";
 

@@ -11,17 +11,14 @@ export type Direction =
   | "down-left"
   | "down-right";
 export type Easing = "linear" | "ease-in" | "ease-out" | "ease-in-out";
-export type AnimationStyle = "opacity-only" | "pulse-size" | "depth-shift" | "bloom-pop";
+export type AnimationStyle = "opacity-only" | "pulse-size" | "fisheye" | "depth-shift" | "bloom-pop";
 export type InactiveStyle = "none" | "static-dim" | "breathe" | "ghost";
 export type MotionPresetId =
   | "radar" | "orbit" | "heartbeat" | "equalizer" | "dna" | "sparkle" | "breathing" | "sine" | "collapse"
-  | "blink"
   | "wave"
   | "sweep"
   | "bloom"
   | "fish-eye"
-  | "ripple"
-  | "pulse"
   | "spiral"
   | "corners"
   | "snake"
