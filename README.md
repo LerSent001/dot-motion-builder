@@ -15,7 +15,7 @@ The editor runs entirely in the browser. It has no account system, backend API, 
 - Direct cell drawing, plus Fill Grid and Clear Grid actions.
 - Square grids from 3×3 through 13×13.
 - Six exposed cell shapes: Rounded, Square, Circle, Diamond, Hexagon, and Star.
-- 19 motion presets with direction- and origin-aware controls where applicable.
+- 44 motion presets with direction- and origin-aware controls where applicable.
 - Separate active-cell and inactive-cell animation styles.
 - Active and inactive colors with opacity controls.
 - Optional glow whose color follows the active color.
@@ -27,25 +27,15 @@ The editor runs entirely in the browser. It has no account system, backend API, 
 
 The current preset library includes:
 
-- Wave
-- Sweep
-- Bloom
-- Fish-eye Lens
-- Spiral
-- Corners First
-- Snake
-- Checkerboard
-- Rain
-- Pinwheel
-- Radar
-- Orbit
-- Heartbeat
-- Equalizer
-- DNA Helix
-- Sparkle
-- Breathing
-- Sine Wave
-- Collapse
+- Core loaders: Spinner, Breathing, Heartbeat
+- Waves and radial motion: Wave, Sweep, Sine Wave, Fish-eye Lens, Burst, Bloom, Collapse, Diamond
+- Paths and scans: Snake, Spiral, Typewriter, Row Scan, Column Scan, Radar, Searching, Box Trace
+- Field effects: Rain, Matrix, Glitch, Random, Sparkle, Pinwheel, Neural Network
+- Shapes and states: Corners, Cross, Heart, Checkerboard, Thinking Dots, Connecting, Progress Bar, Success, Error, Hourglass
+- Abstract and directional motion: Arrow Right, Arrow Left, Equalizer, Orbit, DNA Helix
+- Reusable letter masks: Letter T, Letter X, Letter O
+
+Pulse, Ripple, and Blink remain intentionally excluded. Fixed brand words, icon packs, and game-like reference patterns are also excluded because they are content assets rather than reusable motion behavior.
 
 Presets use a shared deterministic sampler, so the editor preview, Web export, and SwiftUI export consume the same motion data instead of maintaining separate platform-specific preset implementations.
 
@@ -70,7 +60,7 @@ The grid does not have to be filled. Any subset of cells can be active, includin
 ### Animation
 
 - Playback speed
-- Active Cells: Opacity Only, Pulse Size, Fish-eye Lens, Shrink Active, or Pop In/Out
+- Active Cells: Opacity Only, Brightness Scale, Fish-eye Lens, Shrink Active, or Pop In/Out
 - Inactive Cells: None (Static), Static Dim, Breathe, or Ghost Grid
 - Direction controls for directional presets
 - Origin X/Y controls for origin-based presets

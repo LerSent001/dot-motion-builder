@@ -14,6 +14,12 @@ const {compileTimeline} = require('../src/lib/core/timeline.ts');
 const {generateExportArtifact} = require('../src/lib/exporters/index.ts');
 const {buildMotionData} = require('../src/lib/exporters/motion-data.ts');
 let checks = 0;
+assert.equal(motionPresets.length, 44, 'curated reference-adapted catalog size');
+assert.deepEqual(
+  motionPresets.filter(({id}) => ['blink', 'pulse', 'ripple'].includes(id)).map(({id}) => id),
+  [],
+  'removed presets must not return'
+);
 for (const preset of motionPresets) for (const size of [2, 5, 8]) {
   const loader = structuredClone(createMockProject().loaders[0]);
   loader.pattern.grid.rows = loader.pattern.grid.cols = size;
@@ -59,5 +65,29 @@ for (const preset of motionPresets) for (const size of [2, 5, 8]) {
   const duration = getCycleDuration(loader);
   loader.animation.speed = 2;
   assert.equal(getCycleDuration(loader), duration / 2);
+}
+
+const referenceWave = structuredClone(createMockProject().loaders[0]);
+referenceWave.pattern.grid.rows = referenceWave.pattern.grid.cols = 5;
+referenceWave.animation = {...referenceWave.animation, ...getDefaultMotionConfig('wave'), direction:'right', originX:3, originY:3};
+const wavePhase = .25;
+const waveRow = 2, waveCol = 3;
+const expectedWave = (Math.sin(waveCol * .8 + waveRow * .3 - wavePhase * Math.PI * 2) + 1) / 2;
+assert(Math.abs(sampleMotion(referenceWave, waveRow * 5 + waveCol, wavePhase).opacity - expectedWave) < 1e-12, 'wave parameters match reference');
+
+const deterministic = structuredClone(referenceWave);
+deterministic.animation = {...deterministic.animation, ...getDefaultMotionConfig('matrix')};
+assert.deepEqual(sampleMotion(deterministic, 7, .375), sampleMotion(deterministic, 7, .375), 'random-looking presets stay deterministic');
+
+for (const preset of motionPresets) {
+  const loader = structuredClone(createMockProject().loaders[0]);
+  loader.pattern.grid.rows = loader.pattern.grid.cols = 5;
+  loader.pattern.activeCells = Array.from({length:25}, (_, index) => index);
+  loader.animation = {...loader.animation, ...getDefaultMotionConfig(preset.id), originX:3, originY:3, speed:1};
+  const frames = Array.from({length:24}, (_, frameIndex) =>
+    loader.pattern.activeCells.map(cellIndex => sampleMotion(loader, cellIndex, frameIndex / 24).opacity)
+  );
+  assert(Math.max(...frames.flat()) >= .2, `${preset.id} must produce a visible frame`);
+  assert(new Set(frames.map(frame => frame.map(value => value.toFixed(4)).join(','))).size > 1, `${preset.id} must animate over time`);
 }
 console.log(`PASS: ${motionPresets.length} presets, 2/5/8 grids, ${checks} samples; mask, loop, exports and speed.`);

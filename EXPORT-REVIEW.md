@@ -50,7 +50,7 @@ The surrounding interface controls the frame size. When several independently ex
 
 ## Verification completed
 
-- `pnpm test` covers type checking, 19 motion presets across multiple grid sizes, the reference fish-eye formula, loop boundaries, masks, speed scaling, special text, shapes, sequences, and both generators.
+- `pnpm test` covers type checking, 44 motion presets across multiple grid sizes, the reference fish-eye formula, loop boundaries, masks, speed scaling, special text, shapes, sequences, and both generators.
 - `scripts/browser-qa.mjs` covers all preset selections, persistence, real Web Component playback, pause/resume, resizing, and JavaScript/Swift downloads without page errors.
 - `scripts/browser-export-edge-qa.mjs` covers offline loading, transparency, real pixel output, multiple instances, speed changes, invalid-speed fallback, resizing, sequence playback, and non-looping completion.
 - The generated Swift output type-checks against the arm64 iOS Simulator SDK.

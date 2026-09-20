@@ -156,6 +156,31 @@ function normalizeMotionPresetId(value: unknown, fallbackPresetId: MotionPresetI
     case "checkerboard":
     case "rain":
     case "pinwheel":
+    case "spinner":
+    case "burst":
+    case "typewriter":
+    case "row-scan":
+    case "column-scan":
+    case "matrix":
+    case "glitch":
+    case "random":
+    case "diamond-wave":
+    case "box-trace":
+    case "cross-wave":
+    case "heart-wave":
+    case "letter-t":
+    case "letter-x":
+    case "letter-o":
+    case "thinking-dots":
+    case "neural-network":
+    case "searching":
+    case "connecting":
+    case "progress-bar":
+    case "success":
+    case "error":
+    case "arrow-right":
+    case "arrow-left":
+    case "hourglass":
     case "radar": case "orbit": case "heartbeat": case "equalizer": case "dna": case "sparkle": case "breathing": case "sine": case "collapse":
       return value;
     case "blink":
@@ -169,7 +194,7 @@ function normalizeMotionPresetId(value: unknown, fallbackPresetId: MotionPresetI
     case "converge":
       return "collapse";
     case "cross":
-      return "checkerboard";
+      return "cross-wave";
 
     case "zigzag":
       return "wave";

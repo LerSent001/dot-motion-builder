@@ -931,7 +931,7 @@ export function EditorApp() {
                           value={editingLoader.animation.style}
                           options={[
                             { value: "opacity-only", label: language === "cn" ? "透明度" : "Opacity Only" },
-                            { value: "pulse-size", label: language === "cn" ? "脉冲缩放" : "Pulse Size" },
+                            { value: "pulse-size", label: language === "cn" ? "亮度缩放" : "Brightness Scale" },
                             { value: "fisheye", label: language === "cn" ? "鱼眼镜头" : "Fish-eye Lens" },
                             { value: "depth-shift", label: language === "cn" ? "收缩激活点" : "Shrink Active" },
                             { value: "bloom-pop", label: language === "cn" ? "弹性出现" : "Pop In/Out" }

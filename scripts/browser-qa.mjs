@@ -12,7 +12,7 @@ const presets = panelCombos.nth(1);
 await presets.click();
 await page.locator('[role="option"]').first().waitFor({state:'visible'});
 const presetCount = await page.locator('[role="option"]').count();
-assert.equal(presetCount,19);
+assert.equal(presetCount,44);
 await page.keyboard.press('Escape');
 for (let index = 0; index < presetCount; index += 1) {
   await presets.click();
@@ -25,7 +25,7 @@ for (let index = 0; index < presetCount; index += 1) {
 }
 await presets.click();
 await page.locator('[role="option"]').first().waitFor({state:'visible'});
-await page.locator('[role="option"]').filter({hasText:'雷达'}).click();
+await page.locator('[role="option"]').filter({hasText:'鱼眼镜头'}).click();
 const speedSlider=page.getByRole('slider',{name:'速度'});
 const scaleSlider=page.getByRole('slider',{name:'缩放强度'});
 await speedSlider.press('Home');
@@ -39,7 +39,7 @@ const after=await page.locator('.preview-loader__cell').evaluateAll(es=>es.map(e
 assert.notDeepEqual(before,after,'animation must advance');
 await page.screenshot({path:'/tmp/dot-motion-updated.png',fullPage:true});
 await page.reload();
-assert((await presets.innerText()).includes('雷达'));
+assert((await presets.innerText()).includes('鱼眼镜头'));
 assert.equal(await speedSlider.getAttribute('aria-valuenow'),'1.5');
 assert.equal(await scaleSlider.getAttribute('aria-valuenow'),'80');
 await page.getByRole('button',{name:'导出',exact:true}).click();
@@ -72,5 +72,5 @@ await page.getByRole('button',{name:'下载',exact:true}).click();
 await (await swiftDownload).saveAs('/tmp/DotMotionView.swift');
 await exported.close();
 assert.deepEqual(errors,[]);
-console.log('PASS: 19 preset switches, fill, playback, speed, scale, persistence, export dialog; no page errors.');
+console.log('PASS: 44 preset switches, fill, playback, speed, scale, persistence, export dialog; no page errors.');
 await browser.close();
