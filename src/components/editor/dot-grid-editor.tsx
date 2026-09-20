@@ -11,15 +11,13 @@ type DotGridEditorProps = {
   onToggleCell: (cellIndex: number) => void;
   onSetCellActive?: (cellIndex: number, active: boolean) => void;
   variant?: "default" | "canvas";
-  frameLabel?: string;
 };
 
 export function DotGridEditor({
   loader,
   onToggleCell,
   onSetCellActive,
-  variant = "default",
-  frameLabel
+  variant = "default"
 }: DotGridEditorProps) {
   const { rows, cols, cellSize, gap } = loader.pattern.grid;
   const cells = Array.from({ length: rows * cols }, (_, index) => index);
@@ -133,9 +131,6 @@ export function DotGridEditor({
           );
         })}
       </div>
-      {variant === "canvas" && frameLabel ? (
-        <div className="dot-grid-editor-shell__badge">{frameLabel}</div>
-      ) : null}
     </div>
   );
 }

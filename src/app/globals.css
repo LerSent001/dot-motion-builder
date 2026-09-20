@@ -586,10 +586,6 @@ select {
   pointer-events: auto;
 }
 
-.sequence-group-chrome__badge {
-  pointer-events: none;
-}
-
 .canvas-artboard.is-dimmed {
   opacity: 0.24;
 }
@@ -666,25 +662,6 @@ select {
   height: 100%;
   display: grid;
   place-items: center;
-}
-
-.dot-grid-editor-shell__badge {
-  position: absolute;
-  left: 50%;
-  bottom: -44px;
-  transform: translateX(-50%) scale(var(--inverse-canvas-zoom, 1));
-  transform-origin: center top;
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 14px;
-  border-radius: 10px;
-  background: rgba(21, 24, 33, 0.86);
-  border: 1px solid var(--app-border);
-  color: rgba(245, 247, 250, 0.74);
-  font-size: 11px;
-  white-space: nowrap;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
 }
 
 @keyframes artboardSpringIn {

@@ -4,7 +4,7 @@ Dot Motion Builder is a local-first visual editor for designing dot-matrix loadi
 
 **Live editor:** [dot-motion-builder.vercel.app](https://dot-motion-builder.vercel.app/editor)
 
-It replaces hand-written timing logic and repeated parameter tuning with a direct-manipulation canvas: draw the active cells, choose a motion pattern, tune the appearance, preview the result, and copy or download code for the target platform.
+It replaces hand-written timing logic and repeated parameter tuning with a direct-manipulation canvas: draw the active cells, choose a motion preset, tune the appearance, preview the result, and copy or download code for the target platform.
 
 The editor runs entirely in the browser. It has no account system, backend API, database, or cloud dependency, and project data stays in the browser's `localStorage`.
 
@@ -41,9 +41,9 @@ The inspector is organized into five focused sections:
 - Cell shape
 - Cell gap: 0 to 20 px
 
-### Pattern
+### Preset
 
-- Motion/pattern preset
+- Motion preset
 - Fill Grid
 - Clear Grid
 

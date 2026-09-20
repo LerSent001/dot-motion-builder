@@ -153,7 +153,6 @@ function CanvasArtboard({
             onToggleCell={onToggleCell}
             onSetCellActive={onSetCellActive}
             variant="canvas"
-            frameLabel={hideChrome ? undefined : loader.name}
           />
         ) : (
           <PreviewStage
@@ -171,7 +170,6 @@ function CanvasArtboard({
 
 type SequenceGroupChromeProps = {
   bounds: { left: number; top: number; width: number; height: number };
-  name: string;
   frameCount: number;
   canDelete: boolean;
   onAddFrame: () => void;
@@ -183,7 +181,6 @@ type SequenceGroupChromeProps = {
 
 function SequenceGroupChrome({
   bounds,
-  name,
   frameCount,
   canDelete,
   onAddFrame,
@@ -270,7 +267,6 @@ function SequenceGroupChrome({
           </svg>
         </button>
       </div>
-      <div className="dot-grid-editor-shell__badge sequence-group-chrome__badge">{name}</div>
     </div>
   );
 }
@@ -771,7 +767,6 @@ export function EditorApp() {
               {selectedSequenceId && selectedSequenceBounds ? (
                 <SequenceGroupChrome
                   bounds={selectedSequenceBounds}
-                  name={selectedLoader?.name ?? ""}
                   frameCount={sequenceFrameCount}
                   canDelete={project.loaders.some((loader) => loader.sequenceId !== selectedSequenceId)}
                   onAddFrame={() => {
@@ -888,18 +883,18 @@ export function EditorApp() {
                 </PanelSection>
 
                 <PanelSection
-                  title={t.pattern}
+                  title={t.preset}
                   collapsible
                   collapsed={collapsedSections.pattern}
-                  collapseLabel={language === "cn" ? "收起图案" : "Collapse pattern"}
-                  expandLabel={language === "cn" ? "展开图案" : "Expand pattern"}
+                  collapseLabel={language === "cn" ? "收起预设" : "Collapse preset"}
+                  expandLabel={language === "cn" ? "展开预设" : "Expand preset"}
                   onCollapsedChange={(value) => setCollapsedSections(current => ({ ...current, pattern: value }))}
                 >
                   <div className="toolcraft-control-stack">
                     {!editingLoader.sequenceId ? (
                       <>
                         <SelectControl
-                          name={t.pattern}
+                          name={t.preset}
                           value={editingLoader.animation.presetId}
                           options={motionPresets.map(preset => ({ value: preset.id, label: motionPresetCopy[language][preset.id].name }))}
                           onValueChange={(value) => setMotionPreset(value as typeof editingLoader.animation.presetId)}

@@ -11,8 +11,10 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 820, height: 900
   assert.equal(await page.locator('[data-panel-id="properties"]').count(), 1);
   assert.deepEqual(
     (await page.locator('[data-slot="control-section-header"]').allTextContents()).map(text => text.trim()),
-    ['网格', '图案', '动画', '颜色', '效果']
+    ['网格', '预设', '动画', '颜色', '效果']
   );
+  assert.equal(await page.getByText('预设', { exact: true }).count(), 2);
+  assert.equal(await page.locator('.dot-grid-editor-shell__badge').count(), 0);
   const controls = page.locator('[data-slot="toolcraft-panel-content"] [role="combobox"]');
   await controls.first().click();
   await page.locator('[role="option"]').first().waitFor({ state: 'visible' });
@@ -47,6 +49,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 820, height: 900
     assert.equal(await page.getByRole('slider', { name: '速度 (FPS)' }).getAttribute('aria-valuenow'), '6');
     await page.getByRole('button', { name: '+ 序列', exact: true }).click();
     await page.getByRole('button', { name: '预览动画', exact: true }).click();
+    assert.equal(await page.locator('.dot-grid-editor-shell__badge').count(), 0);
     const inactiveCell = page.locator('.canvas-artboard--sequence-preview .preview-loader__cell').first();
     await inactiveCell.waitFor({ state: 'visible' });
     const inactiveSelector = controls.last();
@@ -70,6 +73,13 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 820, height: 900
     assert(canvas && artboard && canvas.height > 500);
     assert(artboard.y < canvas.height && artboard.x < canvas.width);
   }
+  await page.getByText('EN', { exact: true }).click();
+  assert.deepEqual(
+    (await page.locator('[data-slot="control-section-header"]').allTextContents()).map(text => text.trim()),
+    ['Grid', 'Preset', 'Animation', 'Colors', 'Effects']
+  );
+  assert((await page.getByText('Preset', { exact: true }).count()) >= 1);
+  assert.equal(await page.getByText('Pattern', { exact: true }).count(), 0);
   assert.deepEqual(errors, []);
   await page.close();
 }
